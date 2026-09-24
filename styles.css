@@ -1029,24 +1029,23 @@ body {
 }
 
 .legend-dot.dot-operational {
-  width: 10px;
-  height: 10px;
-  background-color: var(--bg-base);
-  border: 1px solid var(--border-hairline);
+  width: 9px;
+  height: 9px;
+  background-color: #94a3b8;
 }
 
 .legend-dot.dot-rerouted {
   width: 10px;
   height: 10px;
   background-color: #f97316;
-  border: 1px solid var(--border-hairline);
+  border: 1.5px solid #ffffff;
 }
 
 .legend-dot.dot-partial {
   width: 10px;
   height: 10px;
   background-color: #eab308;
-  border: 1px solid var(--border-hairline);
+  border: 1.5px solid #ffffff;
 }
 
 .legend-cluster-badge {
@@ -1153,29 +1152,29 @@ body {
 .pop-dot-core.operational {
   width: 10px;
   height: 10px;
-  background-color: var(--bg-base);
-  border: 1px solid var(--border-hairline);
+  background-color: #94a3b8;
+  border: 2px solid #ffffff;
 }
 
 .pop-dot-core.rerouted {
   width: 12px;
   height: 12px;
   background-color: #f97316;
-  border: 1.5px solid var(--bg-base);
+  border: 2px solid #ffffff;
 }
 
 .pop-dot-core.partial {
   width: 12px;
   height: 12px;
   background-color: #eab308;
-  border: 1.5px solid var(--bg-base);
+  border: 2px solid #ffffff;
 }
 
 .pop-dot-core.outage {
   width: 12px;
   height: 12px;
   background-color: #ef4444;
-  border: 1.5px solid var(--bg-base);
+  border: 2px solid #ffffff;
 }
 
 .pop-pulse-ring-incident {
