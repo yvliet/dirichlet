@@ -551,6 +551,11 @@ body {
   border-radius: var(--radius-lg);
   padding: 14px 18px;
   text-align: center;
+  transition: border-color 0.15s ease;
+}
+
+.metric-box:hover {
+  border-color: var(--border-hairline);
 }
 
 .metric-label {
@@ -566,10 +571,10 @@ body {
   letter-spacing: -0.02em;
 }
 
-.count-operational { color: #ffffff; }
-.count-degraded { color: #eab308; }
-.count-offline { color: #ef4444; }
-.count-maintenance { color: #3b82f6; }
+.count-operational { color: var(--text-default); }
+.count-degraded { color: var(--color-degraded); }
+.count-offline { color: var(--color-outage); }
+.count-maintenance { color: var(--color-maintenance); }
 
 /* ==========================================================================
    Search Container
@@ -1141,141 +1146,208 @@ body {
 }
 
 /* ==========================================================================
-   Floating Incident Simulator Dock (Bottom-Center Pill)
+   Telemetry Stat Banners & Charts (Cloudflare Kumo Aesthetic)
    ========================================================================== */
-.floating-sim-dock {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000;
+.heading-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.telemetry-live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  background: rgba(0, 210, 106, 0.1);
+  border: 1px solid rgba(0, 210, 106, 0.25);
+  border-radius: var(--radius-sm);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--color-operational);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--color-operational);
+  box-shadow: 0 0 6px var(--color-operational);
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.telemetry-stat-banner {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.stat-card {
   background: var(--bg-base);
-  border: 1px solid var(--border-hairline);
+  border: 1px solid var(--border-line);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-dock);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  padding: 14px 18px;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  max-width: 90vw;
+  gap: 4px;
+  transition: border-color 0.15s ease;
 }
 
-.dock-header {
-  padding: 8px 14px;
+.stat-card:hover {
+  border-color: var(--border-hairline);
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.stat-value-group {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  background: var(--bg-recessed);
-  border-bottom: 1px solid var(--border-line);
-  cursor: pointer;
-  user-select: none;
+  align-items: baseline;
+  gap: 4px;
+  margin-top: 2px;
 }
 
-.dock-title-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.dock-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.dock-dot.operational { background-color: var(--color-operational); }
-.dock-dot.outage { background-color: var(--color-outage); }
-.dock-dot.degraded { background-color: var(--color-degraded); }
-
-.dock-label {
-  font-size: 0.6875rem;
+.stat-value {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  color: var(--text-default);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.stat-unit {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.stat-meta {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.text-emerald { color: var(--color-operational); }
+.text-amber { color: var(--color-degraded); }
+.text-rose { color: var(--color-outage); }
+.text-crimson { color: var(--color-outage); }
+
+/* Charts */
+.chart-card {
+  background: var(--bg-base);
+  border: 1px solid var(--border-line);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  transition: border-color 0.15s ease;
+}
+
+.chart-card:hover {
+  border-color: var(--border-hairline);
+}
+
+.chart-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.chart-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-default);
+}
+
+.chart-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.chart-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.6875rem;
   color: var(--text-muted);
   font-family: var(--font-mono);
 }
 
-.dock-state-badge {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  padding: 1px 6px;
+.legend-line {
+  width: 16px;
+  height: 2px;
+  border-radius: 1px;
+}
+
+.line-green { background-color: var(--color-operational); }
+.line-blue { background-color: #3b82f6; }
+.line-amber { background-color: var(--color-degraded); }
+.line-target {
+  background: repeating-linear-gradient(90deg, #ef4444, #ef4444 3px, transparent 3px, transparent 6px);
+}
+
+.chart-canvas-container {
+  width: 100%;
+  height: 200px;
+  position: relative;
+  overflow: hidden;
+}
+
+.chart-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.chart-grid-line {
+  stroke: var(--border-line);
+  stroke-dasharray: 2 4;
+  stroke-width: 1;
+}
+
+.chart-axis-label {
+  fill: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.chart-tooltip-box {
+  position: absolute;
+  pointer-events: none;
+  background: var(--bg-base);
+  border: 1px solid var(--border-hairline);
   border-radius: var(--radius-sm);
-  background: var(--bg-base);
-  border: 1px solid var(--border-line);
-  color: #ffffff;
-}
-
-.dock-toggle-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: 0.875rem;
-  display: flex;
-  align-items: center;
-}
-
-.dock-controls {
-  padding: 8px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.dock-btn {
-  background: var(--bg-base);
-  border: 1px solid var(--border-line);
-  color: var(--text-muted);
-  padding: 6px 12px;
-  border-radius: var(--radius-md);
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-}
-
-.dock-btn-icon {
-  font-size: 0.875rem;
-}
-
-.dock-btn:hover {
-  background: var(--bg-tint);
-  color: #ffffff;
-}
-
-.dock-btn.active {
-  background: var(--brand-orange);
-  color: #ffffff;
-  border-color: var(--brand-orange);
-  font-weight: 600;
-}
-
-.dock-btn-break.active {
-  background: #dc2626;
-  border-color: #dc2626;
-  color: #ffffff;
-}
-
-.dock-btn-recover.active {
-  background: #059669;
-  border-color: #059669;
-  color: #ffffff;
-}
-
-.floating-sim-dock.collapsed .dock-controls {
+  padding: 6px 10px;
+  font-size: 0.6875rem;
+  font-family: var(--font-mono);
+  color: var(--text-default);
+  box-shadow: var(--shadow-md);
   display: none;
-}
-
-.floating-sim-dock.collapsed .dock-header {
-  border-bottom: none;
+  z-index: 50;
+  transform: translate(-50%, -120%);
+  white-space: nowrap;
 }
 
 /* ==========================================================================
@@ -1328,6 +1400,9 @@ body {
   .metrics-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .telemetry-stat-banner {
+    grid-template-columns: repeat(2, 1fr);
+  }
   .filter-controls-grid {
     grid-template-columns: 1fr;
   }
@@ -1340,11 +1415,5 @@ body {
   .header-right-tools {
     gap: 10px;
   }
-  .floating-sim-dock {
-    width: 94vw;
-  }
-  .dock-controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
 }
+

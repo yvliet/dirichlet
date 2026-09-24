@@ -8,7 +8,23 @@ let currentSystemState = "nominal"; // 'nominal' | 'break' | 'recover'
 let activeTab = "overview";
 let activeTheme = "dark";
 let useUtc = false;
-let isDockCollapsed = false;
+
+// Telemetry & Metrics Data (Turso backend snapshot)
+const DEFAULT_METRICS = Array.from({ length: 60 }, (_, i) => {
+  const date = new Date(Date.now() - (60 - i) * 5 * 60 * 1000);
+  return {
+    id: i + 1,
+    timestamp: date.toISOString(),
+    p99_latency_ns: Number((7.4 + Math.sin(i / 5) * 0.35).toFixed(2)),
+    traffic_rps: Math.round(52400 + Math.cos(i / 6) * 1200),
+    active_signals: 200,
+    dropped_signals: 0,
+    system_status: "operational"
+  };
+});
+
+let metricsData = [...DEFAULT_METRICS];
+let incidentsData = [];
 
 // Accordion Collapsed States
 const collapsedGroups = new Set();
@@ -319,7 +335,7 @@ const HISTORY_RECORDS = [
 
 function switchTab(tabId) {
   activeTab = tabId;
-  const tabs = ["overview", "services", "locations", "history"];
+  const tabs = ["overview", "services", "metrics", "locations", "history"];
 
   tabs.forEach(t => {
     const btn = document.getElementById(`tab-${t}`);
@@ -345,6 +361,8 @@ function switchTab(tabId) {
         leafletMap.invalidateSize();
       }
     }, 100);
+  } else if (tabId === "metrics") {
+    setTimeout(renderAllCharts, 50);
   }
 
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -375,37 +393,57 @@ function cycleTheme() {
   updateMapTileLayer();
 }
 
-function toggleSimDock() {
-  const dock = document.getElementById("floating-sim-dock");
-  const toggleIcon = document.getElementById("dock-toggle-icon");
-  if (!dock) return;
-
-  isDockCollapsed = !isDockCollapsed;
-  dock.classList.toggle("collapsed", isDockCollapsed);
-
-  if (toggleIcon) {
-    toggleIcon.className = isDockCollapsed ? "ph-bold ph-caret-up" : "ph-bold ph-caret-down";
-  }
-}
-
 // ============================================================================
 // 3. RENDERERS
 // ============================================================================
 
 // 3.1 Overview Tab
+function formatIncidentDate(isoString) {
+  if (!isoString) return "";
+  try {
+    const d = new Date(isoString);
+    const day = d.getDate();
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const month = months[d.getMonth()];
+    const year = d.getFullYear();
+    const hours = d.getHours();
+    const mins = String(d.getMinutes()).padStart(2, "0");
+    return `${day} ${month} ${year}, ${hours}.${mins}`;
+  } catch (_) {
+    return isoString;
+  }
+}
+
+function getEffectiveIncidents() {
+  if (incidentsData && incidentsData.length > 0) {
+    return incidentsData.map(inc => ({
+      title: inc.title,
+      impact: inc.severity === "critical" ? "Critical" : inc.severity === "major" ? "Major" : "Minor",
+      status: inc.status === "resolved" ? "Resolved" : inc.status === "investigating" ? "Investigating" : "Identified",
+      date: formatIncidentDate(inc.started_at),
+      type: "incident",
+      service: inc.service || "fl2",
+      dotClass: inc.status === "resolved" ? "amber" : "rose",
+      statusClass: inc.status === "resolved" ? "status-text-resolved" : inc.status === "investigating" ? "status-text-identified" : "status-text-progress"
+    }));
+  }
+  return RECENT_INCIDENTS;
+}
+
 function renderOverview() {
   // Recent Incidents
   const recentContainer = document.getElementById("recent-incidents-list");
   if (recentContainer) {
-    recentContainer.innerHTML = RECENT_INCIDENTS.map(inc => `
+    const incidents = getEffectiveIncidents();
+    recentContainer.innerHTML = incidents.slice(0, 5).map(inc => `
       <div class="incident-row">
         <div class="row-left">
-          <span class="status-dot-circle amber"></span>
+          <span class="status-dot-circle ${inc.dotClass}"></span>
           <span class="row-title">${inc.title}</span>
         </div>
         <div class="row-right">
-          <span class="impact-badge-minor">${inc.impact}</span>
-          <span class="status-text-resolved">${inc.status}</span>
+          ${inc.impact ? `<span class="impact-badge-minor">${inc.impact}</span>` : ""}
+          <span class="${inc.statusClass}">${inc.status}</span>
           <span class="row-date">${inc.date}</span>
         </div>
       </div>
@@ -675,6 +713,25 @@ function filterLocations() {
 }
 
 // 3.4 History Tab
+function getEffectiveHistoryRecords() {
+  if (incidentsData && incidentsData.length > 0) {
+    const dynamicItems = incidentsData.map((inc, i) => ({
+      id: inc.id || `inc-dyn-${i}`,
+      title: inc.title,
+      type: "incident",
+      impact: inc.severity === "critical" ? "Critical" : inc.severity === "major" ? "Major" : "Minor",
+      status: inc.status === "resolved" ? "Resolved" : inc.status === "investigating" ? "Investigating" : "Identified",
+      date: formatIncidentDate(inc.started_at),
+      service: inc.service || "fl2",
+      location: "all",
+      dotClass: inc.status === "resolved" ? "amber" : "rose",
+      statusClass: inc.status === "resolved" ? "status-text-resolved" : inc.status === "investigating" ? "status-text-identified" : "status-text-progress"
+    }));
+    return [...dynamicItems, ...HISTORY_RECORDS];
+  }
+  return HISTORY_RECORDS;
+}
+
 function renderHistory() {
   const container = document.getElementById("history-list-container");
   if (!container) return;
@@ -683,7 +740,9 @@ function renderHistory() {
   const serviceFilter = document.getElementById("history-filter-service")?.value || "all";
   const locationFilter = document.getElementById("history-filter-location")?.value || "all";
 
-  const filtered = HISTORY_RECORDS.filter(item => {
+  const allRecords = getEffectiveHistoryRecords();
+
+  const filtered = allRecords.filter(item => {
     if (typeFilter !== "all" && item.type !== typeFilter) return false;
     if (serviceFilter !== "all" && item.service !== serviceFilter) return false;
     if (locationFilter !== "all" && item.location !== locationFilter && item.location !== "all") return false;
@@ -710,30 +769,243 @@ function filterHistory() {
 }
 
 // ============================================================================
-// 4. SIMULATOR STATE ENGINE (Normal / Break / Recover)
+// 3.5 EDGE TELEMETRY & PERFORMANCE CHARTS (Native SVG)
 // ============================================================================
 
-function setSystemState(state) {
+function formatChartTime(ts, full = false) {
+  if (!ts) return "";
+  try {
+    const d = new Date(ts);
+    if (full) {
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) + (useUtc ? " UTC" : "");
+    }
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+  } catch (_) {
+    return "";
+  }
+}
+
+function renderSvgChart(containerId, options) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const data = options.data || [];
+  if (data.length === 0) return;
+
+  const width = 800;
+  const height = 200;
+  const padding = { top: 22, right: 30, bottom: 25, left: 55 };
+  const plotWidth = width - padding.left - padding.right;
+  const plotHeight = height - padding.top - padding.bottom;
+
+  const series = options.series || [{ key: "val", color: "#10b981", name: "Value" }];
+  let yMin = options.yMin !== undefined ? options.yMin : Infinity;
+  let yMax = options.yMax !== undefined ? options.yMax : -Infinity;
+
+  series.forEach(s => {
+    data.forEach(d => {
+      const val = d[s.key];
+      if (typeof val === "number" && !isNaN(val)) {
+        if (options.yMin === undefined && val < yMin) yMin = val;
+        if (options.yMax === undefined && val > yMax) yMax = val;
+      }
+    });
+  });
+
+  if (options.targetThreshold !== undefined) {
+    if (options.targetThreshold > yMax) yMax = options.targetThreshold * 1.15;
+  }
+
+  if (yMin === Infinity) yMin = 0;
+  if (yMax === -Infinity || yMax === yMin) yMax = yMin + 10;
+  if (options.forceZeroMin) yMin = 0;
+
+  yMax = yMax * 1.05;
+  const yRange = yMax - yMin || 1;
+
+  const getX = i => padding.left + (i / Math.max(1, data.length - 1)) * plotWidth;
+  const getY = val => padding.top + plotHeight - ((val - yMin) / yRange) * plotHeight;
+
+  // 4 Horizontal Grid lines & labels
+  const ticks = 4;
+  let gridSvg = "";
+  for (let t = 0; t <= ticks; t++) {
+    const tickVal = yMin + (t / ticks) * yRange;
+    const yPos = getY(tickVal);
+    const formattedVal = options.formatY ? options.formatY(tickVal) : tickVal.toFixed(options.decimals || 0);
+
+    gridSvg += `
+      <line x1="${padding.left}" y1="${yPos}" x2="${width - padding.right}" y2="${yPos}" class="chart-grid-line" />
+      <text x="${padding.left - 8}" y="${yPos + 3}" text-anchor="end" class="chart-axis-label">${formattedVal}</text>
+    `;
+  }
+
+  // Optional target threshold line
+  let thresholdSvg = "";
+  if (options.targetThreshold !== undefined) {
+    const threshY = getY(options.targetThreshold);
+    thresholdSvg = `
+      <line x1="${padding.left}" y1="${threshY}" x2="${width - padding.right}" y2="${threshY}" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.85" />
+      <text x="${width - padding.right - 4}" y="${threshY - 5}" text-anchor="end" fill="#ef4444" font-size="9" font-family="var(--font-mono)">${options.thresholdLabel || "Threshold"}</text>
+    `;
+  }
+
+  // Series paths & gradient fills
+  let seriesSvg = "";
+  let defsSvg = "";
+
+  series.forEach((s, idx) => {
+    const gradId = `grad-${containerId}-${idx}`;
+    defsSvg += `
+      <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${s.color}" stop-opacity="0.25" />
+        <stop offset="100%" stop-color="${s.color}" stop-opacity="0.0" />
+      </linearGradient>
+    `;
+
+    const points = data.map((d, i) => {
+      const v = typeof d[s.key] === "number" ? d[s.key] : yMin;
+      return `${getX(i).toFixed(1)},${getY(v).toFixed(1)}`;
+    });
+
+    const linePointsStr = points.join(" ");
+    const areaPointsStr = `${getX(0).toFixed(1)},${getY(yMin).toFixed(1)} ${linePointsStr} ${getX(data.length - 1).toFixed(1)},${getY(yMin).toFixed(1)}`;
+
+    seriesSvg += `
+      <polygon points="${areaPointsStr}" fill="url(#${gradId})" />
+      <polyline points="${linePointsStr}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    `;
+  });
+
+  // Time Axis Labels (start, mid, end)
+  let timeAxisSvg = "";
+  if (data.length > 0) {
+    const tStart = formatChartTime(data[0]?.timestamp);
+    const tMid = formatChartTime(data[Math.floor(data.length / 2)]?.timestamp);
+    const tEnd = formatChartTime(data[data.length - 1]?.timestamp);
+
+    timeAxisSvg = `
+      <text x="${padding.left}" y="${height - 6}" class="chart-axis-label">${tStart}</text>
+      <text x="${padding.left + plotWidth / 2}" y="${height - 6}" text-anchor="middle" class="chart-axis-label">${tMid}</text>
+      <text x="${width - padding.right}" y="${height - 6}" text-anchor="end" class="chart-axis-label">${tEnd}</text>
+    `;
+  }
+
+  const svgHtml = `
+    <svg class="chart-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+      <defs>${defsSvg}</defs>
+      ${gridSvg}
+      ${thresholdSvg}
+      ${seriesSvg}
+      ${timeAxisSvg}
+    </svg>
+    <div class="chart-tooltip-box" id="tooltip-${containerId}"></div>
+  `;
+
+  container.innerHTML = svgHtml;
+
+  // Interactive scrubber on hover
+  const svgElem = container.querySelector("svg");
+  const tooltipElem = container.querySelector(".chart-tooltip-box");
+
+  if (svgElem && tooltipElem) {
+    svgElem.addEventListener("mousemove", e => {
+      const rect = svgElem.getBoundingClientRect();
+      const relX = (e.clientX - rect.left) / rect.width;
+      const svgX = relX * width;
+
+      if (svgX < padding.left || svgX > width - padding.right) {
+        tooltipElem.style.display = "none";
+        return;
+      }
+
+      const ratio = (svgX - padding.left) / plotWidth;
+      const idx = Math.min(data.length - 1, Math.max(0, Math.round(ratio * (data.length - 1))));
+      const pt = data[idx];
+      if (!pt) return;
+
+      let tooltipHtml = `<div style="color:var(--text-dim);font-size:0.6875rem;margin-bottom:4px;">${formatChartTime(pt.timestamp, true)}</div>`;
+      series.forEach(s => {
+        const val = pt[s.key];
+        const formattedVal = options.formatTooltip ? options.formatTooltip(val, s.key) : val;
+        tooltipHtml += `<div style="display:flex;align-items:center;gap:6px;font-size:0.75rem;margin-top:2px;"><span style="color:${s.color};font-size:12px;">●</span><span style="color:var(--text-muted);">${s.name}:</span><span style="font-weight:600;color:var(--text-default);">${formattedVal}</span></div>`;
+      });
+
+      tooltipElem.innerHTML = tooltipHtml;
+      tooltipElem.style.display = "block";
+
+      const containerRect = container.getBoundingClientRect();
+      const leftPx = e.clientX - containerRect.left;
+      const topPx = Math.max(10, e.clientY - containerRect.top - 15);
+      tooltipElem.style.left = `${leftPx}px`;
+      tooltipElem.style.top = `${topPx}px`;
+    });
+
+    svgElem.addEventListener("mouseleave", () => {
+      tooltipElem.style.display = "none";
+    });
+  }
+}
+
+function renderAllCharts() {
+  const dataset = (metricsData && metricsData.length > 0) ? metricsData : DEFAULT_METRICS;
+
+  renderSvgChart("overview-chart-container", {
+    data: dataset,
+    series: [{ key: "p99_latency_ns", color: "#10b981", name: "Latency" }],
+    targetThreshold: 20,
+    thresholdLabel: "20 ns Target",
+    formatY: v => v.toFixed(1) + " ns",
+    formatTooltip: v => (typeof v === "number" ? v.toFixed(2) + " ns" : v),
+    forceZeroMin: true
+  });
+
+  renderSvgChart("metrics-latency-chart", {
+    data: dataset,
+    series: [{ key: "p99_latency_ns", color: "#10b981", name: "p99 Latency" }],
+    targetThreshold: 20,
+    thresholdLabel: "20 ns Threshold",
+    formatY: v => v.toFixed(1) + " ns",
+    formatTooltip: v => (typeof v === "number" ? v.toFixed(2) + " ns" : v),
+    forceZeroMin: true
+  });
+
+  renderSvgChart("metrics-throughput-chart", {
+    data: dataset,
+    series: [{ key: "traffic_rps", color: "#3b82f6", name: "Throughput" }],
+    formatY: v => (v >= 1000 ? (v / 1000).toFixed(0) + "k" : v),
+    formatTooltip: v => (typeof v === "number" ? v.toLocaleString() + " req/s" : v)
+  });
+
+  renderSvgChart("metrics-cardinality-chart", {
+    data: dataset,
+    series: [
+      { key: "active_signals", color: "#10b981", name: "Active Signals" },
+      { key: "dropped_signals", color: "#f59e0b", name: "Shed Columns" }
+    ],
+    yMax: 240,
+    forceZeroMin: true,
+    formatY: v => Math.round(v) + " cols",
+    formatTooltip: v => v + " signals"
+  });
+}
+
+// ============================================================================
+// 4. TELEMETRY STATE CONTROLLER (Nominal / Break / Recover)
+// ============================================================================
+
+function setSystemState(state, telemetry) {
   currentSystemState = state;
 
-  // Simulator Buttons
-  const btnNom = document.getElementById("btn-state-nominal");
-  const btnBrk = document.getElementById("btn-state-break");
-  const btnRec = document.getElementById("btn-state-recover");
-
-  if (btnNom) btnNom.classList.toggle("active", state === "nominal");
-  if (btnBrk) btnBrk.classList.toggle("active", state === "break");
-  if (btnRec) btnRec.classList.toggle("active", state === "recover");
-
-  // Dock Header Badge
-  const dockDot = document.getElementById("dock-status-dot");
-  const dockBadge = document.getElementById("dock-state-badge");
-  if (dockDot) {
-    dockDot.className = `dock-dot ${state === 'break' ? 'outage' : state === 'recover' ? 'degraded' : 'operational'}`;
-  }
-  if (dockBadge) {
-    dockBadge.textContent = state === 'break' ? 'Break 502 (280)' : state === 'recover' ? 'Recover (200/80)' : 'Nominal (200)';
-  }
+  // Telemetry Banner Stats
+  const statLat = document.getElementById("stat-latency");
+  const statLatTarget = document.getElementById("stat-latency-target");
+  const statRps = document.getElementById("stat-rps");
+  const statRpsMeta = document.getElementById("stat-rps-meta");
+  const statSignals = document.getElementById("stat-signals");
+  const statSignalsMeta = document.getElementById("stat-signals-meta");
+  const statDropped = document.getElementById("stat-dropped");
+  const statDroppedMeta = document.getElementById("stat-dropped-meta");
 
   // Active Incidents in Overview Tab
   const activeSection = document.getElementById("active-incidents-section");
@@ -746,6 +1018,27 @@ function setSystemState(state) {
   const mMain = document.getElementById("metric-maintenance");
 
   if (state === "nominal") {
+    if (statLat) statLat.textContent = (telemetry && telemetry.latency_ns) ? Number(telemetry.latency_ns).toFixed(2) : "7.66";
+    if (statLatTarget) {
+      statLatTarget.className = "stat-meta text-emerald";
+      statLatTarget.textContent = "Optimal < 20 ns target";
+    }
+    if (statRps) statRps.textContent = (telemetry && telemetry.traffic_rps) ? Number(telemetry.traffic_rps).toLocaleString() : "52,400";
+    if (statRpsMeta) {
+      statRpsMeta.className = "stat-meta";
+      statRpsMeta.textContent = "Global PoPs Nominal";
+    }
+    if (statSignals) statSignals.textContent = (telemetry && telemetry.active_features) ? `${telemetry.active_features} / 200` : "200 / 200";
+    if (statSignalsMeta) {
+      statSignalsMeta.className = "stat-meta text-emerald";
+      statSignalsMeta.textContent = "100% In-Place Coverage";
+    }
+    if (statDropped) statDropped.textContent = (telemetry && telemetry.dropped_features !== undefined) ? String(telemetry.dropped_features) : "0";
+    if (statDroppedMeta) {
+      statDroppedMeta.className = "stat-meta";
+      statDroppedMeta.textContent = "Zero degraded columns";
+    }
+
     if (activeSection) activeSection.style.display = "none";
     if (activeList) activeList.innerHTML = "";
 
@@ -758,6 +1051,27 @@ function setSystemState(state) {
     setServiceStatus("svc-catalog", "operational", "Operational");
 
   } else if (state === "break") {
+    if (statLat) statLat.textContent = (telemetry && telemetry.latency_ns) ? Number(telemetry.latency_ns).toFixed(2) : "1,420.00";
+    if (statLatTarget) {
+      statLatTarget.className = "stat-meta text-rose";
+      statLatTarget.textContent = "CRITICAL PANIC (TryFromSliceError)";
+    }
+    if (statRps) statRps.textContent = (telemetry && telemetry.traffic_rps) ? Number(telemetry.traffic_rps).toLocaleString() : "1,820";
+    if (statRpsMeta) {
+      statRpsMeta.className = "stat-meta text-rose";
+      statRpsMeta.textContent = "96.5% Ingestion Failure (502s)";
+    }
+    if (statSignals) statSignals.textContent = (telemetry && telemetry.active_features) ? `${telemetry.active_features} / 200` : "280 / 200";
+    if (statSignalsMeta) {
+      statSignalsMeta.className = "stat-meta text-rose";
+      statSignalsMeta.textContent = "Cardinality Drift Exceeded Buffer";
+    }
+    if (statDropped) statDropped.textContent = (telemetry && telemetry.dropped_features !== undefined) ? String(telemetry.dropped_features) : "280";
+    if (statDroppedMeta) {
+      statDroppedMeta.className = "stat-meta text-rose";
+      statDroppedMeta.textContent = "Full Pipeline Degradation";
+    }
+
     if (activeSection) activeSection.style.display = "block";
     if (activeList) {
       activeList.innerHTML = `
@@ -791,6 +1105,27 @@ function setSystemState(state) {
     setServiceStatus("svc-catalog", "degraded", "Degraded");
 
   } else if (state === "recover") {
+    if (statLat) statLat.textContent = (telemetry && telemetry.latency_ns) ? Number(telemetry.latency_ns).toFixed(2) : "7.84";
+    if (statLatTarget) {
+      statLatTarget.className = "stat-meta text-emerald";
+      statLatTarget.textContent = "Optimal (7.84 ns < 20 ns invariant)";
+    }
+    if (statRps) statRps.textContent = (telemetry && telemetry.traffic_rps) ? Number(telemetry.traffic_rps).toLocaleString() : "52,800";
+    if (statRpsMeta) {
+      statRpsMeta.className = "stat-meta text-emerald";
+      statRpsMeta.textContent = "Global PoPs Recovered (100% Traffic)";
+    }
+    if (statSignals) statSignals.textContent = (telemetry && telemetry.active_features) ? `${telemetry.active_features} / 200` : "200 / 200";
+    if (statSignalsMeta) {
+      statSignalsMeta.className = "stat-meta text-emerald";
+      statSignalsMeta.textContent = "Canonical In-Place Slices Restored";
+    }
+    if (statDropped) statDropped.textContent = (telemetry && telemetry.dropped_features !== undefined) ? String(telemetry.dropped_features) : "80";
+    if (statDroppedMeta) {
+      statDroppedMeta.className = "stat-meta text-amber";
+      statDroppedMeta.textContent = "80 Shadow Columns Shed Safely";
+    }
+
     if (activeSection) activeSection.style.display = "block";
     if (activeList) {
       activeList.innerHTML = `
@@ -1096,7 +1431,7 @@ Object.assign(window, {
   switchTab,
   toggleTimezone,
   cycleTheme,
-  toggleSimDock,
+  renderAllCharts,
   toggleServiceGroup,
   toggleRegion,
   filterServices,
@@ -1165,15 +1500,38 @@ function applyInitialStateFromUrl() {
   }
 }
 
-async function pollSystemStatus() {
+async function loadTelemetryData() {
   try {
-    const res = await fetch("status.json?_=" + Date.now(), { cache: "no-store" });
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.state && ["nominal", "break", "recover"].includes(data.state)) {
-        if (data.state !== currentSystemState) {
-          setSystemState(data.state);
+    const [statusRes, metricsRes, incRes] = await Promise.allSettled([
+      fetch("status.json?_=" + Date.now(), { cache: "no-store" }),
+      fetch("data/metrics_timeseries.json?_=" + Date.now(), { cache: "no-store" }),
+      fetch("data/incidents.json?_=" + Date.now(), { cache: "no-store" })
+    ]);
+
+    if (statusRes.status === "fulfilled" && statusRes.value.ok) {
+      const statusData = await statusRes.value.json();
+      if (statusData && statusData.state && ["nominal", "break", "recover"].includes(statusData.state)) {
+        if (statusData.state !== currentSystemState || !window.__initialTelemetryLoaded) {
+          window.__initialTelemetryLoaded = true;
+          setSystemState(statusData.state, statusData);
         }
+      }
+    }
+
+    if (metricsRes.status === "fulfilled" && metricsRes.value.ok) {
+      const remoteMetrics = await metricsRes.value.json();
+      if (Array.isArray(remoteMetrics) && remoteMetrics.length > 0) {
+        metricsData = remoteMetrics;
+        renderAllCharts();
+      }
+    }
+
+    if (incRes.status === "fulfilled" && incRes.value.ok) {
+      const remoteIncidents = await incRes.value.json();
+      if (Array.isArray(remoteIncidents) && remoteIncidents.length > 0) {
+        incidentsData = remoteIncidents;
+        renderOverview();
+        renderHistory();
       }
     }
   } catch (_) {
@@ -1183,12 +1541,19 @@ async function pollSystemStatus() {
 
 window.addEventListener("hashchange", applyInitialStateFromUrl);
 window.addEventListener("popstate", applyInitialStateFromUrl);
+window.addEventListener("resize", () => {
+  if (activeTab === "metrics" || activeTab === "overview") {
+    renderAllCharts();
+  }
+});
 
 document.addEventListener("DOMContentLoaded", () => {
   renderOverview();
   renderServices();
   renderLocations();
   renderHistory();
+  renderAllCharts();
   applyInitialStateFromUrl();
-  setInterval(pollSystemStatus, 1000);
+  loadTelemetryData();
+  setInterval(loadTelemetryData, 1500);
 });

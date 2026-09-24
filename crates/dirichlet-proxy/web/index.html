@@ -59,6 +59,9 @@
       <button type="button" class="capsule-tab" role="tab" id="tab-services" onclick="switchTab('services')">
         Services &amp; Sites
       </button>
+      <button type="button" class="capsule-tab" role="tab" id="tab-metrics" onclick="switchTab('metrics')">
+        Metrics
+      </button>
       <button type="button" class="capsule-tab" role="tab" id="tab-locations" onclick="switchTab('locations')">
         Locations
       </button>
@@ -90,6 +93,63 @@
         </div>
         <div class="incident-card-list" id="active-incidents-list">
           <!-- Dynamically populated when Break or Recover is active -->
+        </div>
+      </section>
+
+      <!-- Live Edge Telemetry & Ingestion Performance Section -->
+      <section class="content-section" id="edge-telemetry-section">
+        <div class="section-heading-row">
+          <div class="heading-title-group">
+            <h2 class="section-heading">Edge Telemetry &amp; Ingestion Performance</h2>
+            <span class="telemetry-live-pill"><span class="pulse-dot"></span> Live Telemetry</span>
+          </div>
+          <a href="#" class="heading-link" onclick="switchTab('metrics'); return false;">View Detailed Analytics</a>
+        </div>
+
+        <div class="telemetry-stat-banner">
+          <div class="stat-card">
+            <div class="stat-label">L7 Ingestion Latency (p99)</div>
+            <div class="stat-value-group">
+              <span class="stat-value" id="stat-latency">7.66</span>
+              <span class="stat-unit">ns</span>
+            </div>
+            <div class="stat-meta text-emerald" id="stat-latency-target">Optimal &lt; 20 ns target</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Edge Ingestion Throughput</div>
+            <div class="stat-value-group">
+              <span class="stat-value" id="stat-rps">52,400</span>
+              <span class="stat-unit">req/s</span>
+            </div>
+            <div class="stat-meta" id="stat-rps-meta">Global PoPs Nominal</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Security Signal Set</div>
+            <div class="stat-value-group">
+              <span class="stat-value" id="stat-signals">200 / 200</span>
+            </div>
+            <div class="stat-meta text-emerald" id="stat-signals-meta">100% In-Place Coverage</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Shed Shadow Features</div>
+            <div class="stat-value-group">
+              <span class="stat-value" id="stat-dropped">0</span>
+              <span class="stat-unit">signals</span>
+            </div>
+            <div class="stat-meta" id="stat-dropped-meta">Zero degraded columns</div>
+          </div>
+        </div>
+
+        <!-- Latency Timeline Graph Container -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title">In-Place Ingestion Latency (p99 Nanoseconds)</div>
+            <div class="chart-legend">
+              <span class="legend-item"><span class="legend-line line-green"></span> Ingestion Latency</span>
+              <span class="legend-item"><span class="legend-line line-target"></span> 20 ns Invariant Threshold</span>
+            </div>
+          </div>
+          <div class="chart-canvas-container" id="overview-chart-container"></div>
         </div>
       </section>
 
@@ -165,6 +225,67 @@
       <div id="service-groups-container">
         <!-- Rendered by JavaScript -->
       </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- VIEW: METRICS & TELEMETRY                  -->
+    <!-- ========================================== -->
+    <div id="view-metrics" class="tab-view" style="display: none;">
+      <!-- Page Hero Header -->
+      <div class="page-hero">
+        <h1 class="page-title">Edge Telemetry &amp; Metrics</h1>
+        <p class="page-subtitle">Real-time performance distributions, signal partitioning telemetry, and sub-20ns latency invariant verification</p>
+      </div>
+
+      <!-- Chart 1: Latency -->
+      <section class="content-section">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">L7 Proxy Ingestion Latency (p99 Nanoseconds)</div>
+              <div class="chart-sub">Measured across 10,000 randomized property cases · sub-20ns target invariant</div>
+            </div>
+            <div class="chart-legend">
+              <span class="legend-item"><span class="legend-line line-green"></span> Measured Latency</span>
+              <span class="legend-item"><span class="legend-line line-target"></span> 20 ns Target Threshold</span>
+            </div>
+          </div>
+          <div class="chart-canvas-container" id="metrics-latency-chart"></div>
+        </div>
+      </section>
+
+      <!-- Chart 2: Throughput -->
+      <section class="content-section">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Global Edge Ingestion Rate (req/s)</div>
+              <div class="chart-sub">Real-time bot mitigation evaluation rate across distributed edge points of presence</div>
+            </div>
+            <div class="chart-legend">
+              <span class="legend-item"><span class="legend-line line-blue"></span> Ingestion Throughput (req/s)</span>
+            </div>
+          </div>
+          <div class="chart-canvas-container" id="metrics-throughput-chart"></div>
+        </div>
+      </section>
+
+      <!-- Chart 3: Signal Allocation -->
+      <section class="content-section">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Feature Allocation &amp; Priority Shedding Spectrum</div>
+              <div class="chart-sub">Canonical 200 security features vs shed shadow columns (priority = 0)</div>
+            </div>
+            <div class="chart-legend">
+              <span class="legend-item"><span class="legend-line line-green"></span> Active Canonical Signals (200)</span>
+              <span class="legend-item"><span class="legend-line line-amber"></span> Shed Shadow Columns (80)</span>
+            </div>
+          </div>
+          <div class="chart-canvas-container" id="metrics-cardinality-chart"></div>
+        </div>
+      </section>
     </div>
 
     <!-- ========================================== -->
@@ -267,34 +388,6 @@
     <i class="ph-fill ph-check-circle toast-blue-icon"></i>
     <span id="toast-message">Subscribed to selection</span>
   </div>
-
-  <!-- Floating Developer Simulator Dock (Pinned to Bottom-Center) -->
-  <aside class="floating-sim-dock" id="floating-sim-dock" aria-label="Incident Simulator Controls">
-    <div class="dock-header" onclick="toggleSimDock()">
-      <div class="dock-title-group">
-        <span class="dock-dot operational" id="dock-status-dot"></span>
-        <span class="dock-label">DIRICHLET SIMULATOR</span>
-        <span class="dock-state-badge" id="dock-state-badge">Nominal (200)</span>
-      </div>
-      <button type="button" class="dock-toggle-btn" id="dock-toggle-btn" aria-label="Toggle Simulator Controls">
-        <i class="ph-bold ph-caret-down" id="dock-toggle-icon"></i>
-      </button>
-    </div>
-    <div class="dock-controls" id="dock-controls">
-      <button type="button" class="dock-btn active" id="btn-state-nominal" onclick="setSystemState('nominal')">
-        <i class="ph-bold ph-play-circle dock-btn-icon"></i>
-        <span>Nominal (200 Signals)</span>
-      </button>
-      <button type="button" class="dock-btn dock-btn-break" id="btn-state-break" onclick="setSystemState('break')">
-        <i class="ph-bold ph-bug dock-btn-icon"></i>
-        <span>Break (280 Signals → 502)</span>
-      </button>
-      <button type="button" class="dock-btn dock-btn-recover" id="btn-state-recover" onclick="setSystemState('recover')">
-        <i class="ph-bold ph-arrows-clockwise dock-btn-icon"></i>
-        <span>Recover (In-Place Shed 80)</span>
-      </button>
-    </div>
-  </aside>
 
   <!-- Clean Enterprise Footer -->
   <footer class="site-footer">

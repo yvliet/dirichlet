@@ -3,5 +3,5 @@ target/
 __pycache__/
 *.pyc
 *.log
-status.json
-**/status.json
+.env
+*.env

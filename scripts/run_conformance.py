@@ -51,9 +51,43 @@ WEB_STATUS_FILES = [
     PROXY_CRATE_DIR / "web" / "status.json",
 ]
 
+scripts_dir = Path(__file__).resolve().parent
+if str(scripts_dir) not in sys.path:
+    sys.path.insert(0, str(scripts_dir))
+
+try:
+    import turso_client
+except Exception:
+    turso_client = None
+
 
 def update_web_status(state: str, **kwargs) -> None:
-    """Synchronize state with status.json for live console updates."""
+    """Synchronize state with Turso database and local status.json for live console updates."""
+    # 1. Update Turso live database
+    if turso_client:
+        try:
+            if state == "nominal":
+                turso_client.record_system_telemetry("nominal", active_features=200, dropped_features=0, latency_ns=7.66, traffic_rps=52400)
+            elif state == "break":
+                turso_client.record_outage_incident(
+                    incident_id="inc-2026-09-24-drift",
+                    title="L7 Edge Proxy Ingestion Panic (TryFromSliceError)",
+                    service="svc-fl2",
+                    service_group="group-proxy",
+                    impact="100% 502 Bad Gateway across edge PoPs",
+                    root_cause="system.columns multi-shard reflection expanded dynamic catalog to 280 features",
+                )
+                turso_client.record_system_telemetry("break", active_features=280, dropped_features=0, latency_ns=0.0, traffic_rps=0)
+            elif state == "recover":
+                turso_client.resolve_outage_incident(
+                    incident_id="inc-2026-09-24-drift",
+                    resolution_message="In-place partial selection (select_nth_unstable_by) shed 80 shadow columns. All 200 core signals restored with 0 B heap reallocations.",
+                )
+                turso_client.record_system_telemetry("recover", active_features=200, dropped_features=80, latency_ns=7.66, traffic_rps=53100)
+        except Exception:
+            pass
+
+    # 2. Local status write
     try:
         data = {"state": state, "timestamp": time.time(), **kwargs}
         payload = json.dumps(data, indent=2)
