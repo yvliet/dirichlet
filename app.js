@@ -1323,6 +1323,7 @@ function switchTab(tabId, updateUrl = true) {
         initLocationsMap();
       } else {
         leafletMap.invalidateSize();
+        updateMapMarkers();
       }
     }, 100);
   } else if (tabId === "metrics") {
@@ -1855,8 +1856,23 @@ function toggleRegion(regionName) {
   renderLocations();
 }
 
-function filterLocations() {
+function filterLocations(shouldPanMap = false) {
   renderLocations();
+  if (leafletMap) {
+    updateMapMarkers();
+    if (shouldPanMap) {
+      const selectedRegion = document.getElementById("region-filter")?.value || "all";
+      if (selectedRegion === "all") {
+        leafletMap.flyTo([20, 15], 2, { duration: 0.8 });
+      } else {
+        const regObj = REGIONAL_LOCATIONS.find(r => r.region === selectedRegion);
+        if (regObj && regObj.pops.length > 0) {
+          const latLngs = regObj.pops.map(p => [p.lat, p.lng]);
+          leafletMap.fitBounds(latLngs, { padding: [40, 40], maxZoom: 5 });
+        }
+      }
+    }
+  }
 }
 
 // 3.4 History Tab
@@ -3257,10 +3273,22 @@ function updateMapMarkers() {
   const isBreak = currentSystemState === "break";
   const isRecover = currentSystemState === "recover";
 
-  // Flatten all PoPs with region metadata
+  const selectedRegion = document.getElementById("region-filter")?.value || "all";
+  const searchQuery = (document.getElementById("location-search")?.value || "").toLowerCase().trim();
+
+  // Flatten all PoPs with region metadata matching active filters
   const allPops = [];
   REGIONAL_LOCATIONS.forEach(reg => {
+    if (selectedRegion !== "all" && reg.region !== selectedRegion) {
+      return;
+    }
     reg.pops.forEach(pop => {
+      if (searchQuery) {
+        const matches = pop.city.toLowerCase().includes(searchQuery) ||
+                        pop.country.toLowerCase().includes(searchQuery) ||
+                        pop.code.toLowerCase().includes(searchQuery);
+        if (!matches) return;
+      }
       let status = pop.status;
       if (isBreak) status = "outage";
       else if (isRecover && (status === "rerouted" || status === "partial")) status = "operational";
