@@ -173,7 +173,7 @@ body {
   font-weight: 500;
   color: var(--text-muted);
   cursor: pointer;
-  transition: color 0.15s ease, font-weight 0.15s ease;
+  transition: color 0.15s ease;
   white-space: nowrap;
   line-height: 1.4;
   outline: none;
@@ -185,7 +185,6 @@ body {
 
 .header-nav-link.active {
   color: var(--text-default);
-  font-weight: 700;
 }
 
 .header-nav-link:focus-visible {
@@ -2131,7 +2130,7 @@ body {
 }
 
 .footer-link:hover {
-  color: #ffffff;
+  color: var(--text-default);
 }
 
 /* ==========================================================================
