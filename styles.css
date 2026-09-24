@@ -936,10 +936,12 @@ body {
 }
 
 .metric-count {
+  font-family: var(--font-mono);
   font-size: 1.25rem;
   font-weight: 500;
   margin-top: 3px;
   letter-spacing: -0.01em;
+  line-height: 1.2;
 }
 
 .count-operational { color: var(--text-default); }
