@@ -1576,12 +1576,48 @@ function initLocationsMap() {
     minZoom: 2,
     maxZoom: 10,
     scrollWheelZoom: false,
+    touchZoom: true,
     zoomControl: false,
     attributionControl: false
   });
 
   // Zoom control positioned in top right
   L.control.zoom({ position: "topright" }).addTo(leafletMap);
+
+  // Enable pinch-to-zoom (trackpad) and Ctrl + Mouse Wheel zooming on the map without zooming the page
+  let zoomAccumulator = 0;
+  let zoomTimeout = null;
+
+  mapElem.addEventListener("wheel", (e) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const mousePoint = leafletMap.mouseEventToLatLng(e);
+      const factor = Math.abs(e.deltaY) > 50 ? 0.01 : 0.02;
+      zoomAccumulator -= e.deltaY * factor;
+
+      if (Math.abs(zoomAccumulator) >= 0.35) {
+        const step = zoomAccumulator > 0 ? 1 : -1;
+        zoomAccumulator = 0;
+        const targetZoom = Math.max(
+          leafletMap.getMinZoom(),
+          Math.min(leafletMap.getMaxZoom(), leafletMap.getZoom() + step)
+        );
+        leafletMap.setZoomAround(mousePoint, targetZoom, { animate: true });
+      }
+
+      clearTimeout(zoomTimeout);
+      zoomTimeout = setTimeout(() => {
+        zoomAccumulator = 0;
+      }, 150);
+    }
+  }, { passive: false });
+
+  // Prevent browser viewport zoom on pinch gestures inside map
+  mapElem.addEventListener("gesturestart", (e) => e.preventDefault(), { passive: false });
+  mapElem.addEventListener("gesturechange", (e) => e.preventDefault(), { passive: false });
+  mapElem.addEventListener("gestureend", (e) => e.preventDefault(), { passive: false });
 
   updateMapTileLayer();
   updateMapMarkers();
