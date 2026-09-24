@@ -891,6 +891,8 @@ function renderSvgChart(containerId, options) {
     `;
   }
 
+  const dotsHtml = series.map(s => `<circle class="chart-scrubber-dot chart-dot-${s.key}" cx="0" cy="0" r="4" style="display:none; fill:${s.color}; stroke:#ffffff; stroke-width:1.5;" />`).join("");
+
   const svgHtml = `
     <svg class="chart-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
       <defs>${defsSvg}</defs>
@@ -898,24 +900,27 @@ function renderSvgChart(containerId, options) {
       ${thresholdSvg}
       ${seriesSvg}
       ${timeAxisSvg}
+      <line class="chart-scrubber-line" x1="0" y1="${padding.top}" x2="0" y2="${height - padding.bottom}" style="display:none; stroke:var(--border-subtle); stroke-dasharray:2 3; stroke-width:1;" />
+      ${dotsHtml}
     </svg>
-    <div class="chart-tooltip-box" id="tooltip-${containerId}"></div>
   `;
 
   container.innerHTML = svgHtml;
 
   // Interactive scrubber on hover
   const svgElem = container.querySelector("svg");
-  const tooltipElem = container.querySelector(".chart-tooltip-box");
 
-  if (svgElem && tooltipElem) {
+  if (svgElem) {
     svgElem.addEventListener("mousemove", e => {
       const rect = svgElem.getBoundingClientRect();
       const relX = (e.clientX - rect.left) / rect.width;
       const svgX = relX * width;
 
       if (svgX < padding.left || svgX > width - padding.right) {
-        tooltipElem.style.display = "none";
+        hideArrowTooltip();
+        const scrubberLine = svgElem.querySelector(".chart-scrubber-line");
+        if (scrubberLine) scrubberLine.style.display = "none";
+        svgElem.querySelectorAll(".chart-scrubber-dot").forEach(d => d.style.display = "none");
         return;
       }
 
@@ -924,25 +929,45 @@ function renderSvgChart(containerId, options) {
       const pt = data[idx];
       if (!pt) return;
 
-      let tooltipHtml = `<div style="color:var(--text-dim);font-size:0.6875rem;margin-bottom:4px;">${formatChartTime(pt.timestamp, true)}</div>`;
+      const ptSvgX = getX(idx);
+      const scrubberLine = svgElem.querySelector(".chart-scrubber-line");
+      if (scrubberLine) {
+        scrubberLine.setAttribute("x1", ptSvgX);
+        scrubberLine.setAttribute("x2", ptSvgX);
+        scrubberLine.style.display = "block";
+      }
+
+      let primarySvgY = height / 2;
+      series.forEach((s, sIdx) => {
+        const val = typeof pt[s.key] === "number" ? pt[s.key] : yMin;
+        const ptSvgY = getY(val);
+        if (sIdx === 0) primarySvgY = ptSvgY;
+        const dot = svgElem.querySelector(`.chart-dot-${s.key}`);
+        if (dot) {
+          dot.setAttribute("cx", ptSvgX);
+          dot.setAttribute("cy", ptSvgY);
+          dot.style.display = "block";
+        }
+      });
+
+      let tooltipHtml = `<div style="color:var(--text-dim);font-size:0.6875rem;margin-bottom:4px;font-family:var(--font-mono);">${formatChartTime(pt.timestamp, true)}</div>`;
       series.forEach(s => {
         const val = pt[s.key];
         const formattedVal = options.formatTooltip ? options.formatTooltip(val, s.key) : val;
-        tooltipHtml += `<div style="display:flex;align-items:center;gap:6px;font-size:0.75rem;margin-top:2px;"><span style="color:${s.color};font-size:12px;">●</span><span style="color:var(--text-muted);">${s.name}:</span><span style="font-weight:600;color:var(--text-default);">${formattedVal}</span></div>`;
+        tooltipHtml += `<div style="display:flex;align-items:center;gap:6px;font-size:0.75rem;margin-top:2px;font-family:var(--font-mono);"><span style="color:${s.color};font-size:10px;">●</span><span style="color:var(--text-muted);">${s.name}:</span><span style="font-weight:600;color:var(--text-default);">${formattedVal}</span></div>`;
       });
 
-      tooltipElem.innerHTML = tooltipHtml;
-      tooltipElem.style.display = "block";
+      const screenX = rect.left + (ptSvgX / width) * rect.width;
+      const screenY = rect.top + (primarySvgY / height) * rect.height;
 
-      const containerRect = container.getBoundingClientRect();
-      const leftPx = e.clientX - containerRect.left;
-      const topPx = Math.max(10, e.clientY - containerRect.top - 15);
-      tooltipElem.style.left = `${leftPx}px`;
-      tooltipElem.style.top = `${topPx}px`;
+      positionArrowTooltipAtPoint(screenX, screenY, tooltipHtml);
     });
 
     svgElem.addEventListener("mouseleave", () => {
-      tooltipElem.style.display = "none";
+      hideArrowTooltip();
+      const scrubberLine = svgElem.querySelector(".chart-scrubber-line");
+      if (scrubberLine) scrubberLine.style.display = "none";
+      svgElem.querySelectorAll(".chart-scrubber-dot").forEach(d => d.style.display = "none");
     });
   }
 }
@@ -1203,6 +1228,34 @@ function positionArrowTooltip(target, htmlContent) {
   tooltip.style.setProperty("--arrow-left", `${arrowOffset}px`);
   tooltip.style.left = `${tooltipLeft}px`;
   tooltip.style.top = `${targetTop}px`;
+}
+
+function positionArrowTooltipAtPoint(targetX, targetY, htmlContent) {
+  const tooltip = document.getElementById("kumo-arrow-tooltip");
+  if (!tooltip) return;
+
+  tooltip.innerHTML = htmlContent;
+  tooltip.style.display = "block";
+
+  const tooltipWidth = tooltip.offsetWidth;
+  let tooltipLeft = targetX;
+
+  const halfWidth = tooltipWidth / 2;
+  const padding = 12;
+
+  if (tooltipLeft + halfWidth > window.innerWidth - padding) {
+    tooltipLeft = window.innerWidth - padding - halfWidth;
+  }
+  if (tooltipLeft - halfWidth < padding) {
+    tooltipLeft = padding + halfWidth;
+  }
+
+  const tooltipBoxLeft = tooltipLeft - halfWidth;
+  const arrowOffset = Math.max(12, Math.min(tooltipWidth - 12, targetX - tooltipBoxLeft));
+
+  tooltip.style.setProperty("--arrow-left", `${arrowOffset}px`);
+  tooltip.style.left = `${tooltipLeft}px`;
+  tooltip.style.top = `${targetY}px`;
 }
 
 function hideArrowTooltip() {
