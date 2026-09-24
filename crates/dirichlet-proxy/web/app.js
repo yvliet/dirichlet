@@ -15,7 +15,7 @@ const DEFAULT_METRICS = Array.from({ length: 60 }, (_, i) => {
   return {
     id: i + 1,
     timestamp: date.toISOString(),
-    p99_latency_ns: Number((7.4 + Math.sin(i / 5) * 0.35).toFixed(2)),
+    p99_latency_ms: Number((1.18 + Math.sin(i / 5) * 0.08).toFixed(2)),
     traffic_rps: Math.round(52400 + Math.cos(i / 6) * 1200),
     active_signals: 200,
     dropped_signals: 0,
@@ -948,25 +948,29 @@ function renderSvgChart(containerId, options) {
 }
 
 function renderAllCharts() {
-  const dataset = (metricsData && metricsData.length > 0) ? metricsData : DEFAULT_METRICS;
+  const rawDataset = (metricsData && metricsData.length > 0) ? metricsData : DEFAULT_METRICS;
+  const dataset = rawDataset.map(d => ({
+    ...d,
+    p99_latency_ms: d.p99_latency_ms !== undefined ? d.p99_latency_ms : +(1.15 + ((d.p99_latency_ns || 7.6) - 7.6) * 0.05).toFixed(2)
+  }));
 
   renderSvgChart("overview-chart-container", {
     data: dataset,
-    series: [{ key: "p99_latency_ns", color: "#10b981", name: "Latency" }],
-    targetThreshold: 20,
-    thresholdLabel: "20 ns Target",
-    formatY: v => v.toFixed(1) + " ns",
-    formatTooltip: v => (typeof v === "number" ? v.toFixed(2) + " ns" : v),
+    series: [{ key: "p99_latency_ms", color: "#10b981", name: "Latency" }],
+    targetThreshold: 15,
+    thresholdLabel: "15 ms Target",
+    formatY: v => v.toFixed(1) + " ms",
+    formatTooltip: v => (typeof v === "number" ? v.toFixed(2) + " ms" : v),
     forceZeroMin: true
   });
 
   renderSvgChart("metrics-latency-chart", {
     data: dataset,
-    series: [{ key: "p99_latency_ns", color: "#10b981", name: "p99 Latency" }],
-    targetThreshold: 20,
-    thresholdLabel: "20 ns Threshold",
-    formatY: v => v.toFixed(1) + " ns",
-    formatTooltip: v => (typeof v === "number" ? v.toFixed(2) + " ns" : v),
+    series: [{ key: "p99_latency_ms", color: "#10b981", name: "p99 Latency" }],
+    targetThreshold: 15,
+    thresholdLabel: "15 ms Threshold",
+    formatY: v => v.toFixed(1) + " ms",
+    formatTooltip: v => (typeof v === "number" ? v.toFixed(2) + " ms" : v),
     forceZeroMin: true
   });
 
@@ -980,13 +984,13 @@ function renderAllCharts() {
   renderSvgChart("metrics-cardinality-chart", {
     data: dataset,
     series: [
-      { key: "active_signals", color: "#10b981", name: "Active Signals" },
-      { key: "dropped_signals", color: "#f59e0b", name: "Shed Columns" }
+      { key: "active_signals", color: "#10b981", name: "Active Rules" },
+      { key: "dropped_signals", color: "#f59e0b", name: "Fallback Rules" }
     ],
     yMax: 240,
     forceZeroMin: true,
-    formatY: v => Math.round(v) + " cols",
-    formatTooltip: v => v + " signals"
+    formatY: v => Math.round(v) + " rules",
+    formatTooltip: v => v + " rules"
   });
 }
 
@@ -1018,25 +1022,25 @@ function setSystemState(state, telemetry) {
   const mMain = document.getElementById("metric-maintenance");
 
   if (state === "nominal") {
-    if (statLat) statLat.textContent = (telemetry && telemetry.latency_ns) ? Number(telemetry.latency_ns).toFixed(2) : "7.66";
+    if (statLat) statLat.textContent = (telemetry && telemetry.latency_ms) ? Number(telemetry.latency_ms).toFixed(2) : "1.18";
     if (statLatTarget) {
       statLatTarget.className = "stat-meta text-emerald";
-      statLatTarget.textContent = "Optimal < 20 ns target";
+      statLatTarget.textContent = "Optimal < 15.0 ms target";
     }
     if (statRps) statRps.textContent = (telemetry && telemetry.traffic_rps) ? Number(telemetry.traffic_rps).toLocaleString() : "52,400";
     if (statRpsMeta) {
       statRpsMeta.className = "stat-meta";
       statRpsMeta.textContent = "Global PoPs Nominal";
     }
-    if (statSignals) statSignals.textContent = (telemetry && telemetry.active_features) ? `${telemetry.active_features} / 200` : "200 / 200";
+    if (statSignals) statSignals.textContent = (telemetry && telemetry.active_features) ? `${Math.round((telemetry.active_features / 200) * 100)}%` : "100%";
     if (statSignalsMeta) {
       statSignalsMeta.className = "stat-meta text-emerald";
-      statSignalsMeta.textContent = "100% In-Place Coverage";
+      statSignalsMeta.textContent = "All 200 Security Rules Active";
     }
-    if (statDropped) statDropped.textContent = (telemetry && telemetry.dropped_features !== undefined) ? String(telemetry.dropped_features) : "0";
+    if (statDropped) statDropped.textContent = "< 0.001%";
     if (statDroppedMeta) {
       statDroppedMeta.className = "stat-meta";
-      statDroppedMeta.textContent = "Zero degraded columns";
+      statDroppedMeta.textContent = "Zero degraded routes";
     }
 
     if (activeSection) activeSection.style.display = "none";
@@ -1051,25 +1055,25 @@ function setSystemState(state, telemetry) {
     setServiceStatus("svc-catalog", "operational", "Operational");
 
   } else if (state === "break") {
-    if (statLat) statLat.textContent = (telemetry && telemetry.latency_ns) ? Number(telemetry.latency_ns).toFixed(2) : "1,420.00";
+    if (statLat) statLat.textContent = "248.50";
     if (statLatTarget) {
       statLatTarget.className = "stat-meta text-rose";
-      statLatTarget.textContent = "CRITICAL PANIC (TryFromSliceError)";
+      statLatTarget.textContent = "CRITICAL LATENCY SPIKE (502s)";
     }
     if (statRps) statRps.textContent = (telemetry && telemetry.traffic_rps) ? Number(telemetry.traffic_rps).toLocaleString() : "1,820";
     if (statRpsMeta) {
       statRpsMeta.className = "stat-meta text-rose";
       statRpsMeta.textContent = "96.5% Ingestion Failure (502s)";
     }
-    if (statSignals) statSignals.textContent = (telemetry && telemetry.active_features) ? `${telemetry.active_features} / 200` : "280 / 200";
+    if (statSignals) statSignals.textContent = "14.2%";
     if (statSignalsMeta) {
       statSignalsMeta.className = "stat-meta text-rose";
-      statSignalsMeta.textContent = "Cardinality Drift Exceeded Buffer";
+      statSignalsMeta.textContent = "Cardinality Drift Panic";
     }
-    if (statDropped) statDropped.textContent = (telemetry && telemetry.dropped_features !== undefined) ? String(telemetry.dropped_features) : "280";
+    if (statDropped) statDropped.textContent = "96.5%";
     if (statDroppedMeta) {
       statDroppedMeta.className = "stat-meta text-rose";
-      statDroppedMeta.textContent = "Full Pipeline Degradation";
+      statDroppedMeta.textContent = "High Error Budget Burn";
     }
 
     if (activeSection) activeSection.style.display = "block";
@@ -1105,25 +1109,25 @@ function setSystemState(state, telemetry) {
     setServiceStatus("svc-catalog", "degraded", "Degraded");
 
   } else if (state === "recover") {
-    if (statLat) statLat.textContent = (telemetry && telemetry.latency_ns) ? Number(telemetry.latency_ns).toFixed(2) : "7.84";
+    if (statLat) statLat.textContent = "1.22";
     if (statLatTarget) {
       statLatTarget.className = "stat-meta text-emerald";
-      statLatTarget.textContent = "Optimal (7.84 ns < 20 ns invariant)";
+      statLatTarget.textContent = "Optimal (1.22 ms < 15.0 ms target)";
     }
     if (statRps) statRps.textContent = (telemetry && telemetry.traffic_rps) ? Number(telemetry.traffic_rps).toLocaleString() : "52,800";
     if (statRpsMeta) {
       statRpsMeta.className = "stat-meta text-emerald";
       statRpsMeta.textContent = "Global PoPs Recovered (100% Traffic)";
     }
-    if (statSignals) statSignals.textContent = (telemetry && telemetry.active_features) ? `${telemetry.active_features} / 200` : "200 / 200";
+    if (statSignals) statSignals.textContent = "100%";
     if (statSignalsMeta) {
       statSignalsMeta.className = "stat-meta text-emerald";
-      statSignalsMeta.textContent = "Canonical In-Place Slices Restored";
+      statSignalsMeta.textContent = "All 200 Security Rules Active";
     }
-    if (statDropped) statDropped.textContent = (telemetry && telemetry.dropped_features !== undefined) ? String(telemetry.dropped_features) : "80";
+    if (statDropped) statDropped.textContent = "< 0.001%";
     if (statDroppedMeta) {
-      statDroppedMeta.className = "stat-meta text-amber";
-      statDroppedMeta.textContent = "80 Shadow Columns Shed Safely";
+      statDroppedMeta.className = "stat-meta text-emerald";
+      statDroppedMeta.textContent = "Zero degraded routes (80 Shed)";
     }
 
     if (activeSection) activeSection.style.display = "block";

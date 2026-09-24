@@ -105,15 +105,15 @@
 
         <div class="telemetry-stat-banner">
           <div class="stat-card">
-            <div class="stat-label">L7 Ingestion Latency (p99)</div>
+            <div class="stat-label">Edge Processing Latency (p99)</div>
             <div class="stat-value-group">
-              <span class="stat-value" id="stat-latency">7.66</span>
-              <span class="stat-unit">ns</span>
+              <span class="stat-value" id="stat-latency">1.18</span>
+              <span class="stat-unit">ms</span>
             </div>
-            <div class="stat-meta text-emerald" id="stat-latency-target">Optimal &lt; 20 ns target</div>
+            <div class="stat-meta text-emerald" id="stat-latency-target">Optimal &lt; 15.0 ms target</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Edge Ingestion Throughput</div>
+            <div class="stat-label">Global Edge Throughput</div>
             <div class="stat-value-group">
               <span class="stat-value" id="stat-rps">52,400</span>
               <span class="stat-unit">req/s</span>
@@ -121,29 +121,28 @@
             <div class="stat-meta" id="stat-rps-meta">Global PoPs Nominal</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Security Signal Set</div>
+            <div class="stat-label">WAF &amp; Threat Engine Health</div>
             <div class="stat-value-group">
-              <span class="stat-value" id="stat-signals">200 / 200</span>
+              <span class="stat-value" id="stat-signals">100%</span>
             </div>
-            <div class="stat-meta text-emerald" id="stat-signals-meta">100% In-Place Coverage</div>
+            <div class="stat-meta text-emerald" id="stat-signals-meta">All 200 Security Rules Active</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Shed Shadow Features</div>
+            <div class="stat-label">Edge Error Rate (5xx)</div>
             <div class="stat-value-group">
-              <span class="stat-value" id="stat-dropped">0</span>
-              <span class="stat-unit">signals</span>
+              <span class="stat-value" id="stat-dropped">&lt; 0.001%</span>
             </div>
-            <div class="stat-meta" id="stat-dropped-meta">Zero degraded columns</div>
+            <div class="stat-meta" id="stat-dropped-meta">Zero degraded routes</div>
           </div>
         </div>
 
         <!-- Latency Timeline Graph Container -->
         <div class="chart-card">
           <div class="chart-header">
-            <div class="chart-title">In-Place Ingestion Latency (p99 Nanoseconds)</div>
+            <div class="chart-title">Edge Processing Latency (p99 Milliseconds)</div>
             <div class="chart-legend">
               <span class="legend-item"><span class="legend-line line-green"></span> Ingestion Latency</span>
-              <span class="legend-item"><span class="legend-line line-target"></span> 20 ns Invariant Threshold</span>
+              <span class="legend-item"><span class="legend-line line-target"></span> 15 ms Invariant Threshold</span>
             </div>
           </div>
           <div class="chart-canvas-container" id="overview-chart-container"></div>
@@ -240,12 +239,12 @@
         <div class="chart-card">
           <div class="chart-header">
             <div>
-              <div class="chart-title">L7 Proxy Ingestion Latency (p99 Nanoseconds)</div>
-              <div class="chart-sub">Measured across 10,000 randomized property cases · sub-20ns target invariant</div>
+              <div class="chart-title">Global Edge Processing Latency (p99 Milliseconds)</div>
+              <div class="chart-sub">Measured across distributed global edge Points of Presence · sub-15ms target invariant</div>
             </div>
             <div class="chart-legend">
               <span class="legend-item"><span class="legend-line line-green"></span> Measured Latency</span>
-              <span class="legend-item"><span class="legend-line line-target"></span> 20 ns Target Threshold</span>
+              <span class="legend-item"><span class="legend-line line-target"></span> 15 ms Target Threshold</span>
             </div>
           </div>
           <div class="chart-canvas-container" id="metrics-latency-chart"></div>
@@ -255,7 +254,7 @@
         <div class="chart-card">
           <div class="chart-header">
             <div>
-              <div class="chart-title">Global Edge Ingestion Rate (req/s)</div>
+              <div class="chart-title">Global Edge Throughput (req/s)</div>
               <div class="chart-sub">Real-time bot mitigation evaluation rate across distributed edge points of presence</div>
             </div>
             <div class="chart-legend">
@@ -269,12 +268,12 @@
         <div class="chart-card">
           <div class="chart-header">
             <div>
-              <div class="chart-title">Feature Allocation &amp; Priority Shedding Spectrum</div>
-              <div class="chart-sub">Canonical 200 security features vs shed shadow columns (priority = 0)</div>
+              <div class="chart-title">Security Policy Coverage &amp; Threat Rule Status</div>
+              <div class="chart-sub">Active security rules (200 canonical signals) vs fallback dynamic policies</div>
             </div>
             <div class="chart-legend">
-              <span class="legend-item"><span class="legend-line line-green"></span> Active Canonical Signals (200)</span>
-              <span class="legend-item"><span class="legend-line line-amber"></span> Shed Shadow Columns (80)</span>
+              <span class="legend-item"><span class="legend-line line-green"></span> Active Security Rules (200)</span>
+              <span class="legend-item"><span class="legend-line line-amber"></span> Dynamic Fallback Policies (0)</span>
             </div>
           </div>
           <div class="chart-canvas-container" id="metrics-cardinality-chart"></div>
