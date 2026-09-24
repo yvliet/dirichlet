@@ -1586,6 +1586,8 @@ function initLocationsMap() {
   updateMapTileLayer();
   updateMapMarkers();
 
+  leafletMap.on("zoomstart", hideArrowTooltip);
+  leafletMap.on("movestart", hideArrowTooltip);
   leafletMap.on("zoomend", updateMapMarkers);
   leafletMap.on("moveend", updateMapMarkers);
 }
@@ -1692,54 +1694,33 @@ function updateMapMarkers() {
 
       const marker = L.marker([cluster.lat, cluster.lng], { icon: clusterIcon }).addTo(leafletMap);
 
-      const popupHtml = `
-        <div class="kumo-cluster-popup">
-          <div class="kumo-cluster-popup-header">
-            <span class="cluster-popup-title">${count} cities</span>
-            <span class="kumo-grouped-badge">GROUPED</span>
-          </div>
-          <div class="kumo-cluster-popup-body">
-            <div class="kumo-popup-row">
-              <div class="kumo-popup-row-left">
-                <span class="kumo-popup-dot operational"></span>
-                <span>Operational</span>
-              </div>
-              <span class="kumo-popup-count">${opCount}</span>
-            </div>
-            ${reroutedCount > 0 ? `
-            <div class="kumo-popup-row">
-              <div class="kumo-popup-row-left">
-                <span class="kumo-popup-dot rerouted"></span>
-                <span>Re-routed</span>
-              </div>
-              <span class="kumo-popup-count">${reroutedCount}</span>
-            </div>` : ''}
-            ${partialCount > 0 ? `
-            <div class="kumo-popup-row">
-              <div class="kumo-popup-row-left">
-                <span class="kumo-popup-dot partial"></span>
-                <span>Partially Re-routed</span>
-              </div>
-              <span class="kumo-popup-count">${partialCount}</span>
-            </div>` : ''}
-            ${outageCount > 0 ? `
-            <div class="kumo-popup-row">
-              <div class="kumo-popup-row-left">
-                <span class="kumo-popup-dot outage"></span>
-                <span>Outage</span>
-              </div>
-              <span class="kumo-popup-count">${outageCount}</span>
-            </div>` : ''}
-          </div>
-          <div class="kumo-cluster-popup-footer">
-            <i class="ph ph-magnifying-glass-plus"></i> Click to zoom in
-          </div>
+      const clusterTooltipHtml = `
+        <div style="font-weight: 600; font-size: 0.8125rem;">${count} locations in cluster</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 3px; margin-top: 4px;">
+          <div><span style="color: #94a3b8; font-size: 0.6875rem;">●</span> ${opCount} Operational</div>
+          ${reroutedCount > 0 ? `<div><span style="color: #f97316; font-size: 0.6875rem;">●</span> ${reroutedCount} Re-routed</div>` : ''}
+          ${partialCount > 0 ? `<div><span style="color: #eab308; font-size: 0.6875rem;">●</span> ${partialCount} Partially Re-routed</div>` : ''}
+          ${outageCount > 0 ? `<div><span style="color: #ef4444; font-size: 0.6875rem;">●</span> ${outageCount} Outage</div>` : ''}
         </div>
+        <div style="margin-top: 5px; font-size: 0.6875rem; color: var(--text-dim); border-top: 1px solid var(--border-line); padding-top: 3px;">Click to zoom in</div>
       `;
 
-      marker.bindPopup(popupHtml, { offset: [0, -10], closeButton: false });
+      marker.on("mouseover", () => {
+        const mapContainer = document.getElementById("locations-map");
+        if (!mapContainer || !leafletMap) return;
+        const mapRect = mapContainer.getBoundingClientRect();
+        const containerPoint = leafletMap.latLngToContainerPoint([cluster.lat, cluster.lng]);
+        const targetX = mapRect.left + containerPoint.x;
+        const targetY = mapRect.top + containerPoint.y - 14;
+        positionArrowTooltipAtPoint(targetX, targetY, clusterTooltipHtml);
+      });
+
+      marker.on("mouseout", () => {
+        hideArrowTooltip();
+      });
 
       marker.on("click", () => {
+        hideArrowTooltip();
         leafletMap.flyTo([cluster.lat, cluster.lng], Math.min(10, currentZoom + 2), { duration: 0.7 });
       });
 
@@ -1763,18 +1744,39 @@ function updateMapMarkers() {
       const marker = L.marker([pop.lat, pop.lng], { icon: popIcon }).addTo(leafletMap);
       marker.popCode = pop.code;
 
-      const popupHtml = `
-        <div class="kumo-pop-popup">
-          <div class="pop-popup-title">${pop.city}, ${pop.country}</div>
-          <div class="pop-popup-code">PoP: ${pop.code} · ${pop.region}</div>
-          <div class="pop-popup-status-tag ${statusClass}">
-            <span class="kumo-popup-dot ${statusClass}"></span>
-            <span>${statusLabel}</span>
-          </div>
+      let dotColor = "#94a3b8";
+      if (statusClass === "outage") dotColor = "#ef4444";
+      else if (statusClass === "rerouted") dotColor = "#f97316";
+      else if (statusClass === "partial") dotColor = "#eab308";
+
+      const popTooltipHtml = `
+        <div style="font-weight: 600; font-size: 0.8125rem;">${pop.city}, ${pop.country}</div>
+        <div style="font-size: 0.6875rem; color: var(--text-muted); font-family: var(--font-mono); margin-top: 2px;">PoP: ${pop.code} · ${pop.region}</div>
+        <div style="margin-top: 4px; display: inline-flex; align-items: center; gap: 5px; font-size: 0.75rem; font-weight: 500;">
+          <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background-color:${dotColor};"></span>
+          <span>${statusLabel}</span>
         </div>
       `;
 
-      marker.bindPopup(popupHtml, { offset: [0, -6], closeButton: false });
+      marker.on("mouseover", () => {
+        const mapContainer = document.getElementById("locations-map");
+        if (!mapContainer || !leafletMap) return;
+        const mapRect = mapContainer.getBoundingClientRect();
+        const containerPoint = leafletMap.latLngToContainerPoint([pop.lat, pop.lng]);
+        const targetX = mapRect.left + containerPoint.x;
+        const targetY = mapRect.top + containerPoint.y - 8;
+        positionArrowTooltipAtPoint(targetX, targetY, popTooltipHtml);
+      });
+
+      marker.on("mouseout", () => {
+        hideArrowTooltip();
+      });
+
+      marker.on("click", () => {
+        hideArrowTooltip();
+        focusPopCode(pop.code);
+      });
+
       mapMarkers.push(marker);
     }
   });
