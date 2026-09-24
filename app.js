@@ -1070,39 +1070,15 @@ function renderServices() {
             </div>
             <div class="service-status-right ${statusClass}">
               ${(isOutage || isDegraded) && primaryIncident ? `
-                <button type="button" class="service-status-badge ${statusClass}" onclick="openIncidentDetail('${primaryIncident.id}')" title="Click to view incident details">
-                  <span>${rawStatus}</span>
-                  <i class="ph-bold ph-arrow-up-right"></i>
-                </button>
+                <span class="service-status-text ${statusClass} clickable" onclick="openIncidentDetail('${primaryIncident.id}')" role="button" tabindex="0" title="Click to view incident details">${rawStatus}</span>
               ` : `
-                <span>${rawStatus}</span>
+                <span class="service-status-text ${statusClass}">${rawStatus}</span>
               `}
               <button type="button" class="btn-subscribe-plus ${isSubscribed ? 'subscribed' : ''}" onclick="toggleServiceSubscription(event, '${group.id}', '${svc.name}')" data-tooltip-name="${svc.name}" aria-label="Subscribe to ${svc.name}">
                 <i class="${isSubscribed ? 'ph-bold ph-check' : 'ph ph-plus'}"></i>
               </button>
             </div>
           </div>
-
-          ${incidentList.length > 0 ? `
-            <div class="service-incident-strip">
-              ${incidentList.slice(0, 1).map(inc => {
-                const isActive = inc.status !== 'resolved';
-                return `
-                  <div class="service-incident-item" onclick="openIncidentDetail('${inc.id}')" role="button" tabindex="0" title="Click to view incident details">
-                    <div class="service-incident-item-left">
-                      <span class="incident-status-dot ${inc.severity || 'minor'} ${isActive ? 'pulse' : ''}"></span>
-                      <span class="service-incident-pill-badge ${isActive ? 'active' : ''}">${isActive ? 'Active Incident' : 'Incident'}</span>
-                      <span class="service-incident-item-title">${escapeAttr(inc.title)}</span>
-                    </div>
-                    <div class="service-incident-item-right">
-                      <span class="service-incident-link-text">Details</span>
-                      <i class="ph-bold ph-arrow-right"></i>
-                    </div>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          ` : ''}
 
           <!-- 90-Day Uptime Grid -->
           <div class="uptime-grid" data-svc-name="${svc.name}">

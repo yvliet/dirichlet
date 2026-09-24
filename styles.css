@@ -997,7 +997,7 @@ body {
 }
 
 .service-accordion-header {
-  padding: 14px 18px;
+  padding: 14px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1047,7 +1047,7 @@ body {
 
 /* Individual Service Item */
 .service-item-row {
-  padding: 14px 18px;
+  padding: 14px 20px;
   border-bottom: 1px solid var(--border-line);
 }
 
@@ -1059,7 +1059,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .service-name-left {
@@ -1088,117 +1088,20 @@ body {
 .service-status-right.degraded { color: var(--color-degraded); }
 .service-status-right.outage { color: var(--color-outage); }
 
-.service-status-badge {
-  background: transparent;
-  border: none;
-  font-family: inherit;
-  font-size: inherit;
-  font-weight: 600;
-  color: inherit;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 6px;
-  border-radius: var(--radius-sm);
-  transition: background-color 0.15s ease, opacity 0.15s ease;
-}
-
-.service-status-badge:hover {
-  background-color: rgba(255, 255, 255, 0.08);
-  opacity: 0.9;
-}
-
-.service-status-badge.outage {
-  color: var(--color-outage);
-}
-
-.service-status-badge.degraded {
-  color: var(--color-degraded);
-}
-
-/* Service Incident Banner & Links */
-.service-incident-strip {
-  margin: 6px 0 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.service-incident-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  background-color: var(--bg-recessed);
-  border: 1px solid var(--border-line);
-  border-radius: var(--radius-md);
-  padding: 8px 12px;
-  cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
-  user-select: none;
-}
-
-.service-incident-item:hover {
-  background-color: var(--bg-elevated);
-  border-color: var(--border-subtle);
-}
-
-.service-incident-item:focus-visible {
-  outline: 2px solid var(--brand-blue);
-  outline-offset: 2px;
-}
-
-.service-incident-item-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-  flex: 1;
-}
-
-.service-incident-pill-badge {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 2px 6px;
-  border-radius: var(--radius-sm);
-  background-color: var(--bg-elevated);
-  border: 1px solid var(--border-hairline);
-  color: var(--text-subtle);
-  white-space: nowrap;
-}
-
-.service-incident-pill-badge.active {
-  background-color: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.35);
-  color: #f87171;
-}
-
-.service-incident-item-title {
+.service-status-text {
   font-size: 0.8125rem;
   font-weight: 500;
-  color: var(--text-default);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1;
 }
 
-.service-incident-item-right {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  flex-shrink: 0;
-  transition: color 0.15s ease, transform 0.15s ease;
+.service-status-text.clickable {
+  cursor: pointer;
+  transition: opacity 0.15s ease;
 }
 
-.service-incident-item:hover .service-incident-item-right {
-  color: var(--text-default);
-  transform: translateX(2px);
+.service-status-text.clickable:hover {
+  text-decoration: underline;
+  opacity: 0.85;
 }
 
 .service-check-icon.outage {
@@ -1209,20 +1112,20 @@ body {
   color: var(--color-degraded);
 }
 
-/* Precision 90-Day Uptime Grid: GUARANTEED 100% UNIFORM SPACING */
+/* Precision 90-Day Uptime Grid: Uniform Integer Spacing */
 .uptime-grid {
-  display: grid;
-  grid-template-columns: repeat(90, minmax(0, 1fr));
-  gap: 2.5px;
+  display: flex;
+  gap: 2px;
   height: 22px;
   width: 100%;
   align-items: stretch;
 }
 
 .uptime-bar-tick {
-  width: 100%;
+  flex: 1 1 0;
+  min-width: 0;
   height: 100%;
-  border-radius: 1.5px;
+  border-radius: 1px;
   background-color: var(--color-operational);
   transition: opacity 0.12s ease, transform 0.12s ease;
   cursor: pointer;
@@ -1243,19 +1146,13 @@ body {
 
 .uptime-bar-tick.has-incident {
   cursor: pointer;
-  position: relative;
-}
-
-.uptime-bar-tick.has-incident:hover {
-  transform: scaleY(1.35);
-  box-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
 }
 
 /* Uptime Legend with Dividing Hairlines */
 .uptime-legend-row {
   display: flex;
   align-items: center;
-  margin-top: 8px;
+  margin-top: 10px;
   font-size: 0.6875rem;
   color: var(--text-dim);
 }
