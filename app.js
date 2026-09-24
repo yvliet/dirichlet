@@ -395,7 +395,7 @@ const SERVICE_GROUPS = [
     id: "group-cdn",
     name: "CDN & Performance",
     services: [
-      { id: "svc-cdn", name: "CDN/Cache", status: "operational", degradedDays: [15, 28, 55, 68] },
+      { id: "svc-cdn", name: "CDN/Cache", status: "operational", degradedDays: [15, 28, 55, 68, 89] },
       { id: "svc-online", name: "Always Online", status: "operational", degradedDays: [] },
       { id: "svc-reserve", name: "Cache Reserve", status: "operational", degradedDays: [18, 70] },
       { id: "svc-purge", name: "CDN Cache Purge", status: "operational", degradedDays: [66] },
@@ -411,13 +411,14 @@ const SERVICE_GROUPS = [
     id: "group-proxy",
     name: "Core FL2 Proxy & Security Engine",
     services: [
-      { id: "svc-fl2", name: "Core FL2 Proxy Engine (Rust [Feature; 200])", status: "operational", degradedDays: [42] },
-      { id: "svc-ja4", name: "JA4 / JA3 Cryptographic Fingerprint Evaluator", status: "operational", degradedDays: [] },
+      { id: "svc-fl2", name: "Core FL2 Proxy Engine (Rust [Feature; 200])", status: "operational", degradedDays: [42, 87] },
+      { id: "svc-api", name: "Edge API & Authentication Gateway", status: "operational", degradedDays: [89] },
+      { id: "svc-ja4", name: "JA4 / JA3 Cryptographic Fingerprint Evaluator", status: "operational", degradedDays: [81] },
       { id: "svc-tcp", name: "TCP Transport & SYN-ACK Latency Evaluator", status: "operational", degradedDays: [] },
       { id: "svc-h2", name: "HTTP/2 & HTTP/3 Frame Protocol Analyzer", status: "operational", degradedDays: [] },
-      { id: "svc-entropy", name: "Shannon Header & Request Entropy Scorer", status: "operational", degradedDays: [] },
-      { id: "svc-ip", name: "IP & BGP Network Reputation Classifier", status: "operational", degradedDays: [30] },
-      { id: "svc-hints", name: "Client Hints & Behavioral Biometrics Engine", status: "operational", degradedDays: [] }
+      { id: "svc-entropy", name: "Shannon Header & Request Entropy Scorer", status: "operational", degradedDays: [78] },
+      { id: "svc-ip", name: "IP & BGP Network Reputation Classifier", status: "operational", degradedDays: [30, 90] },
+      { id: "svc-hints", name: "Client Hints & Behavioral Biometrics Engine", status: "operational", degradedDays: [86] }
     ]
   },
   {
@@ -434,8 +435,8 @@ const SERVICE_GROUPS = [
     name: "Distributed Storage & Analytical Shards",
     services: [
       { id: "svc-ch-cluster", name: "ClickHouse Sharded Analytics Cluster", status: "operational", degradedDays: [60] },
-      { id: "svc-shards", name: "Shard Replica Tables (events_r0 / events_r1)", status: "operational", degradedDays: [] },
-      { id: "svc-kv", name: "Distributed Edge KV Cache", status: "operational", degradedDays: [] }
+      { id: "svc-shards", name: "Shard Replica Tables (events_r0 / events_r1)", status: "operational", degradedDays: [84] },
+      { id: "svc-kv", name: "Distributed Edge KV Cache", status: "operational", degradedDays: [88] }
     ]
   }
 ];
@@ -891,6 +892,130 @@ function renderOverview() {
   }
 }
 
+function escapeAttr(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function findServiceById(svcId) {
+  for (const group of SERVICE_GROUPS) {
+    const found = group.services.find(s => s.id === svcId || s.id.replace("svc-", "") === svcId);
+    if (found) return found;
+  }
+  return null;
+}
+
+function getIncidentsForService(svcId, svcName) {
+  const list = [];
+  const all = (incidentsData && incidentsData.length > 0) ? incidentsData : DEFAULT_INCIDENTS;
+  
+  const cleanId = (svcId || "").toLowerCase().replace("svc-", "");
+  const cleanName = (svcName || "").toLowerCase();
+
+  all.forEach(inc => {
+    const incSvc = (inc.service || "").toLowerCase();
+    const incTitle = (inc.title || "").toLowerCase();
+
+    if (incSvc === svcId.toLowerCase() || incSvc === cleanId) {
+      if (!list.some(x => x.id === inc.id)) list.push(inc);
+      return;
+    }
+
+    if (cleanName.includes("fl2") || cleanName.includes("proxy")) {
+      if (incSvc === "fl2" || incSvc === "svc-fl2" || incTitle.includes("proxy") || incTitle.includes("fl2") || inc.id.includes("drift")) {
+        if (!list.some(x => x.id === inc.id)) list.push(inc);
+        return;
+      }
+    }
+    if (cleanName.includes("bgp") || cleanName.includes("ip")) {
+      if (incSvc === "ip" || incSvc === "svc-ip" || incTitle.includes("bgp") || incTitle.includes("byoip")) {
+        if (!list.some(x => x.id === inc.id)) list.push(inc);
+        return;
+      }
+    }
+    if (cleanName.includes("cdn") || cleanName.includes("cache")) {
+      if (incSvc === "cdn" || incSvc === "svc-cdn" || incTitle.includes("cache")) {
+        if (!list.some(x => x.id === inc.id)) list.push(inc);
+        return;
+      }
+    }
+    if (cleanName.includes("shard")) {
+      if (incSvc === "shards" || incSvc === "svc-shards" || incTitle.includes("replica") || incTitle.includes("shard")) {
+        if (!list.some(x => x.id === inc.id)) list.push(inc);
+        return;
+      }
+    }
+    if (cleanName.includes("ja4") || cleanName.includes("fingerprint")) {
+      if (incSvc === "ja4" || incSvc === "svc-ja4" || incTitle.includes("ja4") || incTitle.includes("fingerprint")) {
+        if (!list.some(x => x.id === inc.id)) list.push(inc);
+        return;
+      }
+    }
+    if (cleanName.includes("entropy")) {
+      if (incSvc === "entropy" || incSvc === "svc-entropy" || incTitle.includes("entropy")) {
+        if (!list.some(x => x.id === inc.id)) list.push(inc);
+        return;
+      }
+    }
+    if (cleanName.includes("kv") || cleanName.includes("storage")) {
+      if (incSvc === "kv" || incSvc === "svc-kv" || incTitle.includes("durable objects") || incTitle.includes("r2")) {
+        if (!list.some(x => x.id === inc.id)) list.push(inc);
+        return;
+      }
+    }
+    if (cleanName.includes("api") || cleanName.includes("auth")) {
+      if (incSvc === "api" || incSvc === "svc-api" || incTitle.includes("authentication") || incTitle.includes("api")) {
+        if (!list.some(x => x.id === inc.id)) list.push(inc);
+        return;
+      }
+    }
+  });
+
+  list.sort((a, b) => {
+    const aActive = a.status !== "resolved";
+    const bActive = b.status !== "resolved";
+    if (aActive && !bActive) return -1;
+    if (!aActive && bActive) return 1;
+    return new Date(b.started_at || 0) - new Date(a.started_at || 0);
+  });
+
+  return list;
+}
+
+function getIncidentForDay(svc, day, incidentList) {
+  if (day === 90) {
+    if (svc.status === "outage" || svc.status === "degraded") {
+      const activeInc = incidentList.find(inc => inc.status !== "resolved");
+      if (activeInc) return activeInc.id;
+      if (svc.id === "svc-fl2") return "inc-2026-09-24-drift";
+      if (svc.id === "svc-ip") return "inc-2026-09-24-bgp";
+      return incidentList[0] ? incidentList[0].id : `inc-degraded-${svc.id}-90`;
+    }
+    return null;
+  }
+
+  if (svc.id === "svc-cdn" && day === 89) return "inc-2026-09-24-cache";
+  if (svc.id === "svc-cdn" && day === 68) return "inc-2026-09-23-cache";
+  if (svc.id === "svc-api" && day === 89) return "inc-2026-09-24-auth";
+  if (svc.id === "svc-kv" && day === 88) return "inc-2026-09-22-do";
+  if (svc.id === "svc-fl2" && day === 87) return "inc-2026-09-21-r2-au";
+  if (svc.id === "svc-hints" && day === 86) return "inc-2026-09-20-dns";
+  if (svc.id === "svc-shards" && day === 84) return "inc-2026-09-18-shards";
+  if (svc.id === "svc-ja4" && day === 81) return "inc-2026-09-15-ja4";
+  if (svc.id === "svc-entropy" && day === 78) return "inc-2026-09-12-entropy";
+
+  if (incidentList && incidentList.length > 0) {
+    return incidentList[0].id;
+  }
+
+  return `inc-degraded-${svc.id}-${day}`;
+}
+
 // 3.2 Services & Sites Tab
 function renderServices() {
   const container = document.getElementById("service-groups-container");
@@ -933,23 +1058,55 @@ function renderServices() {
       const statusClass = isOutage ? "outage" : isDegraded ? "degraded" : "operational";
       const isSubscribed = userSubscriptions.has(svc.name);
 
+      const incidentList = getIncidentsForService(svc.id, svc.name);
+      const primaryIncident = incidentList[0] || null;
+
       html += `
         <div class="service-item-row">
           <div class="service-item-header">
             <div class="service-name-left">
-              <i class="ph-bold ph-check-circle service-check-icon"></i>
+              <i class="ph-bold ph-check-circle service-check-icon ${isOutage ? 'outage' : isDegraded ? 'degraded' : ''}"></i>
               <span>${svc.name}</span>
             </div>
             <div class="service-status-right ${statusClass}">
-              <span>${rawStatus}</span>
+              ${(isOutage || isDegraded) && primaryIncident ? `
+                <button type="button" class="service-status-badge ${statusClass}" onclick="openIncidentDetail('${primaryIncident.id}')" title="Click to view incident details">
+                  <span>${rawStatus}</span>
+                  <i class="ph-bold ph-arrow-up-right"></i>
+                </button>
+              ` : `
+                <span>${rawStatus}</span>
+              `}
               <button type="button" class="btn-subscribe-plus ${isSubscribed ? 'subscribed' : ''}" onclick="toggleServiceSubscription(event, '${group.id}', '${svc.name}')" data-tooltip-name="${svc.name}" aria-label="Subscribe to ${svc.name}">
                 <i class="${isSubscribed ? 'ph-bold ph-check' : 'ph ph-plus'}"></i>
               </button>
             </div>
           </div>
+
+          ${incidentList.length > 0 ? `
+            <div class="service-incident-strip">
+              ${incidentList.slice(0, 1).map(inc => {
+                const isActive = inc.status !== 'resolved';
+                return `
+                  <div class="service-incident-item" onclick="openIncidentDetail('${inc.id}')" role="button" tabindex="0" title="Click to view incident details">
+                    <div class="service-incident-item-left">
+                      <span class="incident-status-dot ${inc.severity || 'minor'} ${isActive ? 'pulse' : ''}"></span>
+                      <span class="service-incident-pill-badge ${isActive ? 'active' : ''}">${isActive ? 'Active Incident' : 'Incident'}</span>
+                      <span class="service-incident-item-title">${escapeAttr(inc.title)}</span>
+                    </div>
+                    <div class="service-incident-item-right">
+                      <span class="service-incident-link-text">Details</span>
+                      <i class="ph-bold ph-arrow-right"></i>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          ` : ''}
+
           <!-- 90-Day Uptime Grid -->
           <div class="uptime-grid" data-svc-name="${svc.name}">
-            ${generateUptimeBars(svc)}
+            ${generateUptimeBars(svc, incidentList)}
           </div>
           <!-- Uptime Legend -->
           <div class="uptime-legend-row">
@@ -986,30 +1143,39 @@ function filterServices() {
   renderServices();
 }
 
-// Generates exactly 90 uniform grid bars with guaranteed pixel-consistent spacing
-function generateUptimeBars(svc) {
+// Generates exactly 90 uniform grid bars with clickable incident navigation
+function generateUptimeBars(svc, incidentList = []) {
   let barsHtml = "";
   const degradedDays = new Set(svc.degradedDays || []);
 
   for (let day = 1; day <= 90; day++) {
     let tickClass = "";
     let note = "100% operational · Zero incidents";
+    let incId = null;
 
     // Day 90 is current live runtime state
     if (day === 90) {
       if (svc.status === "outage") {
         tickClass = "outage";
         note = "Major Outage · 502 Bad Gateway (TryFromSliceError panic)";
+        incId = getIncidentForDay(svc, 90, incidentList);
       } else if (svc.status === "degraded") {
         tickClass = "degraded";
         note = "Degraded feature intake · 80 shadow columns shed at edge";
+        incId = getIncidentForDay(svc, 90, incidentList);
       }
     } else if (degradedDays.has(day)) {
       tickClass = "degraded";
-      note = "Upstream catalog synchronization jitter · Minor latency";
+      incId = getIncidentForDay(svc, day, incidentList);
+      const incObj = incId ? findIncidentById(incId) : null;
+      note = incObj ? incObj.title : "Upstream catalog synchronization jitter · Minor latency";
     }
 
-    barsHtml += `<div class="uptime-bar-tick ${tickClass}" data-day="${day}" data-note="${note}"></div>`;
+    if (incId) {
+      barsHtml += `<div class="uptime-bar-tick ${tickClass} has-incident" data-day="${day}" data-incident-id="${incId}" data-note="${escapeAttr(note)}" onclick="openIncidentDetail('${incId}')" role="button" tabindex="0" title="Click to view incident details"></div>`;
+    } else {
+      barsHtml += `<div class="uptime-bar-tick ${tickClass}" data-day="${day}" data-note="${escapeAttr(note)}"></div>`;
+    }
   }
   return barsHtml;
 }
@@ -1370,6 +1536,51 @@ function findIncidentById(id) {
     };
   }
 
+  // 5. Synthesized incident fallback for degraded ticks
+  if (id.startsWith("inc-degraded-")) {
+    const parts = id.split("-");
+    const day = parts[parts.length - 1];
+    const svcCode = parts.slice(2, -1).join("-") || "edge";
+    const serviceObj = findServiceById(svcCode);
+    const serviceName = serviceObj ? serviceObj.name : svcCode;
+    const pastMs = (90 - parseInt(day, 10)) * 86400000;
+    const startIso = new Date(Date.now() - pastMs).toISOString();
+    const resolvedIso = new Date(Date.now() - pastMs + 2880000).toISOString();
+
+    return {
+      id: id,
+      title: `Transient latency jitter on ${serviceName}`,
+      service: svcCode,
+      service_group: "group-proxy",
+      severity: "minor",
+      status: "resolved",
+      impact: "Minor Performance Deviation",
+      root_cause: `Upstream transit convergence jitter and regional edge route rebalancing for ${serviceName}.`,
+      started_at: startIso,
+      resolved_at: resolvedIso,
+      updates: [
+        {
+          time: "Resolved",
+          status: "resolved",
+          title: "Resolved",
+          message: "Transit route rebalancing completed and regional edge caches synchronized. Service operational baseline verified."
+        },
+        {
+          time: "Monitoring",
+          status: "monitoring",
+          title: "Monitoring",
+          message: "Route updates applied. Monitoring telemetry latency distributions and cache hit ratios."
+        },
+        {
+          time: "Investigating",
+          status: "investigating",
+          title: "Investigating",
+          message: `Investigating transient jitter and latency deviation across upstream ingress points for ${serviceName}.`
+        }
+      ]
+    };
+  }
+
   return null;
 }
 
@@ -1390,7 +1601,11 @@ function openIncidentDetail(incidentId, pushState = true) {
 
   if (pushState) {
     if (window.location.hash !== "#incident/" + encodeURIComponent(incidentId)) {
-      history.pushState(null, "", "#incident/" + encodeURIComponent(incidentId));
+      if (typeof window !== "undefined" && window.history && window.history.pushState) {
+        window.history.pushState(null, "", "#incident/" + encodeURIComponent(incidentId));
+      } else {
+        window.location.hash = "#incident/" + encodeURIComponent(incidentId);
+      }
     }
   }
 
@@ -2154,9 +2369,13 @@ function attachTooltipListeners() {
     tick.addEventListener("mouseenter", () => {
       const day = tick.getAttribute("data-day");
       const note = tick.getAttribute("data-note");
+      const incId = tick.getAttribute("data-incident-id");
       const svcName = tick.closest(".uptime-grid")?.getAttribute("data-svc-name") || "Service";
 
-      const content = `<div style="font-weight: 600;">Day ${day}/90 · ${svcName}</div><div style="color: var(--text-dim); font-size: 0.75rem; margin-top: 2px;">${note}</div>`;
+      let content = `<div style="font-weight: 600;">Day ${day}/90 · ${svcName}</div><div style="color: var(--text-dim); font-size: 0.75rem; margin-top: 2px;">${note}</div>`;
+      if (incId) {
+        content += `<div style="color: #60a5fa; font-size: 0.75rem; font-weight: 600; margin-top: 5px; display: flex; align-items: center; gap: 4px;">Click to view incident →</div>`;
+      }
       positionArrowTooltip(tick, content);
     });
 
@@ -2374,7 +2593,8 @@ Object.assign(window, {
   showIncidentDetail,
   goBackFromIncident,
   refreshIncidentDetail,
-  applyInitialStateFromUrl
+  applyInitialStateFromUrl,
+  getIncidentsForService
 });
 window.addEventListener("scroll", hideArrowTooltip, { passive: true });
 
