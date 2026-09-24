@@ -1080,10 +1080,10 @@ function renderServices() {
             </div>
           </div>
 
-          <!-- 90-Day Uptime Grid -->
-          <div class="uptime-grid" data-svc-name="${svc.name}">
+          <!-- 90-Day Uptime Grid (SVG Vector Rendering for 100% Uniform Spacing) -->
+          <svg class="uptime-grid" viewBox="0 0 898 22" preserveAspectRatio="none" data-svc-name="${svc.name}">
             ${generateUptimeBars(svc, incidentList)}
-          </div>
+          </svg>
           <!-- Uptime Legend -->
           <div class="uptime-legend-row">
             <span class="uptime-legend-label">90 days ago</span>
@@ -1125,6 +1125,7 @@ function generateUptimeBars(svc, incidentList = []) {
   const degradedDays = new Set(svc.degradedDays || []);
 
   for (let day = 1; day <= 90; day++) {
+    const x = (day - 1) * 10;
     let tickClass = "";
     let note = "100% operational · Zero incidents";
     let incId = null;
@@ -1148,9 +1149,9 @@ function generateUptimeBars(svc, incidentList = []) {
     }
 
     if (incId) {
-      barsHtml += `<div class="uptime-bar-tick ${tickClass} has-incident" data-day="${day}" data-incident-id="${incId}" data-note="${escapeAttr(note)}" onclick="openIncidentDetail('${incId}')" role="button" tabindex="0" title="Click to view incident details"></div>`;
+      barsHtml += `<rect class="uptime-bar-tick ${tickClass} has-incident" x="${x}" y="0" width="8" height="22" rx="1" data-day="${day}" data-incident-id="${incId}" data-note="${escapeAttr(note)}" onclick="openIncidentDetail('${incId}')" role="button" tabindex="0"></rect>`;
     } else {
-      barsHtml += `<div class="uptime-bar-tick ${tickClass}" data-day="${day}" data-note="${escapeAttr(note)}"></div>`;
+      barsHtml += `<rect class="uptime-bar-tick ${tickClass}" x="${x}" y="0" width="8" height="22" rx="1" data-day="${day}" data-note="${escapeAttr(note)}"></rect>`;
     }
   }
   return barsHtml;

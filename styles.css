@@ -1112,23 +1112,20 @@ body {
   color: var(--color-degraded);
 }
 
-/* Precision 90-Day Uptime Grid: Uniform Integer Spacing */
+/* Precision 90-Day Uptime Grid: Uniform SVG Vector Rendering */
 .uptime-grid {
-  display: flex;
-  gap: 2px;
-  height: 22px;
+  display: block;
   width: 100%;
-  align-items: stretch;
+  height: 22px;
+  overflow: visible;
 }
 
 .uptime-bar-tick {
-  flex: 1 1 0;
-  min-width: 0;
-  height: 100%;
-  border-radius: 1px;
-  background-color: var(--color-operational);
+  fill: var(--color-operational);
   transition: opacity 0.12s ease, transform 0.12s ease;
   cursor: pointer;
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
 .uptime-bar-tick:hover {
@@ -1137,11 +1134,11 @@ body {
 }
 
 .uptime-bar-tick.degraded {
-  background-color: var(--color-degraded);
+  fill: var(--color-degraded);
 }
 
 .uptime-bar-tick.outage {
-  background-color: var(--color-outage);
+  fill: var(--color-outage);
 }
 
 .uptime-bar-tick.has-incident {
