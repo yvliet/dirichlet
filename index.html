@@ -285,7 +285,54 @@
     <!-- VIEW 3: LOCATIONS                          -->
     <!-- ========================================== -->
     <div id="view-locations" class="tab-view" style="display: none;">
-      <!-- Filter Bar: Search + Region Dropdown -->
+      <!-- Hero / Subscribe to Updates -->
+      <div class="locations-hero">
+        <button type="button" class="btn-subscribe" onclick="subscribeToUpdates()">
+          Subscribe to updates
+        </button>
+      </div>
+
+      <!-- Locations Status Metric Counters Grid -->
+      <section class="locations-summary-grid" aria-label="Locations Status Summary">
+        <div class="metric-box">
+          <div class="metric-label">Operational</div>
+          <div class="metric-count count-operational" id="loc-summary-operational">299</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">Re-routed</div>
+          <div class="metric-count count-rerouted" id="loc-summary-rerouted">18</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">Partially Re-routed</div>
+          <div class="metric-count count-partially-rerouted" id="loc-summary-partial">25</div>
+        </div>
+      </section>
+
+      <!-- Map View for Anycast Routing Topology (Headerless + Bottom Legend) -->
+      <div class="map-card locations-map-card">
+        <div id="locations-map"></div>
+        <div class="map-bottom-legend">
+          <div class="map-legend-items">
+            <span class="map-legend-item">
+              <span class="legend-dot dot-operational"></span> Operational
+            </span>
+            <span class="map-legend-item">
+              <span class="legend-dot dot-rerouted"></span> Re-routed
+            </span>
+            <span class="map-legend-item">
+              <span class="legend-dot dot-partial"></span> Partially Re-routed
+            </span>
+            <span class="map-legend-item">
+              <span class="legend-cluster-badge">#</span> Grouped. Zoom in for status.
+            </span>
+          </div>
+          <div class="map-attribution">
+            &copy; OpenStreetMap contributors
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Bar: Search + Region Dropdown (Positioned Below Map) -->
       <div class="locations-filter-row">
         <div class="kumo-search-container search-flex">
           <i class="ph ph-magnifying-glass kumo-search-icon"></i>
@@ -303,15 +350,6 @@
             <option value="Oceania">Oceania</option>
           </select>
         </div>
-      </div>
-
-      <!-- Map View for Anycast Routing Topology (Positioned Above Regional Accordions) -->
-      <div class="map-card" style="margin-bottom: 20px;">
-        <div class="map-header">
-          <span class="map-title"><i class="ph ph-globe"></i> Global Edge Anycast Topology</span>
-          <button type="button" class="map-reset-btn" onclick="resetMapView()">Reset View</button>
-        </div>
-        <div id="locations-map"></div>
       </div>
 
       <!-- Region Accordions & City Rows -->
