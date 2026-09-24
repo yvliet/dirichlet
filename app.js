@@ -1264,6 +1264,18 @@ const HISTORY_RECORDS = [
 // 2. TAB ROUTING & CONTROLS
 // ============================================================================
 
+const TAB_TITLES = {
+  overview: "Overview",
+  services: "Services & Sites",
+  metrics: "Metrics",
+  locations: "Locations",
+  history: "History"
+};
+
+function updateDocumentTitle(pageName) {
+  document.title = pageName ? `${pageName} | Dirichlet` : "Dirichlet";
+}
+
 let previousTabBeforeIncident = "overview";
 let currentOpenIncidentId = null;
 
@@ -1279,6 +1291,8 @@ function switchTab(tabId, updateUrl = true) {
         window.location.hash = tabId;
       }
     }
+    const titleName = TAB_TITLES[tabId] || (tabId.charAt(0).toUpperCase() + tabId.slice(1));
+    updateDocumentTitle(titleName);
   }
   activeTab = tabId;
   const tabs = ["overview", "services", "metrics", "locations", "history", "incident-detail"];
@@ -2195,6 +2209,9 @@ function showIncidentDetail(incident) {
   if (!detailView) return;
   detailView.style.display = "block";
   activeTab = "incident-detail";
+
+  const incidentTitle = incident.title || "Incident Details";
+  updateDocumentTitle(incidentTitle);
 
   // 3. Populate Header Pill & Meta
   const impactElem = document.getElementById("incident-detail-impact");
