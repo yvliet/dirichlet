@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Seed comprehensive incidents into Turso libSQL database and export static JSON snapshots.
-Parity with Cloudflare Status incident history schema and real production events.
+Populates incident history records and exports static JSON snapshots.
 """
 
 from __future__ import annotations

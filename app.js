@@ -1,6 +1,5 @@
 /**
  * Dirichlet Edge Security Service: System Status Controller
- * 1:1 Functional Parity with Cloudflare Kumo Status Architecture
  */
 
 // Application State
@@ -948,11 +947,11 @@ function renderServices() {
               </button>
             </div>
           </div>
-          <!-- Uniform Micro-Precision 90-Day Uptime Grid -->
+          <!-- 90-Day Uptime Grid -->
           <div class="uptime-grid" data-svc-name="${svc.name}">
             ${generateUptimeBars(svc)}
           </div>
-          <!-- Uptime Legend with Dividing Hairlines -->
+          <!-- Uptime Legend -->
           <div class="uptime-legend-row">
             <span class="uptime-legend-label">90 days ago</span>
             <div class="uptime-legend-line"></div>
