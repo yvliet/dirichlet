@@ -1,0 +1,26 @@
+# ==============================================================================
+# Dirichlet Edge Security Proxy Configuration
+# ==============================================================================
+
+server:
+  listen_addr: "0.0.0.0:8443"
+  worker_threads: 16
+  keepalive_timeout_secs: 60
+
+buffer:
+  max_active_features: 200
+  stack_allocation_mode: "fixed_contiguous"
+  degradation_policy: "priority_partial_selection"
+
+evaluator:
+  bot_block_threshold: 80
+  bot_challenge_threshold: 50
+  ja4_fingerprint_weight: 0.35
+  network_reputation_weight: 0.40
+  behavioral_entropy_weight: 0.25
+
+telemetry:
+  rfc5424_app_name: "dirichlet-proxy"
+  rfc5424_facility: 16
+  prometheus_metrics_enabled: true
+  prometheus_endpoint: "/metrics"
