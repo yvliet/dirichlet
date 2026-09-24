@@ -101,6 +101,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 24px;
+}
+
+.header-brand-group {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .brand-link {
@@ -136,6 +143,46 @@ body {
   font-size: 0.9375rem;
   font-weight: 700;
   letter-spacing: -0.01em;
+}
+
+/* Header Text Navigation (Clean text links, bolded when active) */
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  flex: 1;
+  margin-left: 8px;
+}
+
+.header-nav-link {
+  background: transparent;
+  border: none;
+  padding: 4px 0;
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 0.84375rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s ease, font-weight 0.15s ease;
+  white-space: nowrap;
+  line-height: 1.4;
+  outline: none;
+}
+
+.header-nav-link:hover {
+  color: var(--text-default);
+}
+
+.header-nav-link.active {
+  color: var(--text-default);
+  font-weight: 700;
+}
+
+.header-nav-link:focus-visible {
+  outline: 2px solid var(--brand-blue);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
 }
 
 .header-right-tools {
@@ -197,57 +244,13 @@ body {
 }
 
 /* ==========================================================================
-   Centered Segmented Navigation Capsule
-   ========================================================================== */
-.segmented-nav-wrapper {
-  display: flex;
-  justify-content: center;
-  padding: 18px 20px 24px;
-}
-
-.segmented-capsule {
-  background: var(--bg-recessed);
-  border: 1px solid var(--border-line);
-  border-radius: var(--radius-lg);
-  padding: 4px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.capsule-tab {
-  background: transparent;
-  border: 1px solid transparent;
-  color: var(--text-muted);
-  padding: 6px 18px;
-  border-radius: var(--radius-md);
-  font-size: 0.84375rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-}
-
-.capsule-tab:hover {
-  color: var(--text-default);
-}
-
-.capsule-tab.active {
-  background: var(--bg-elevated);
-  border-color: var(--border-subtle);
-  color: #ffffff;
-  font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-}
-
-/* ==========================================================================
    Page Layout & Centered Hero
    ========================================================================== */
 .page-container {
   max-width: 940px;
   width: 100%;
   margin: 0 auto;
-  padding: 0 20px 120px; /* Generous bottom spacing for floating dock */
+  padding: 32px 20px 120px; /* Top spacing and bottom spacing for floating dock */
   flex: 1;
 }
 
@@ -2092,6 +2095,34 @@ body {
    Responsive Adaptations
    ========================================================================== */
 @media (max-width: 768px) {
+  .header-inner {
+    flex-wrap: wrap;
+    row-gap: 12px;
+    padding: 10px 16px;
+  }
+  .header-brand-group {
+    order: 1;
+  }
+  .header-right-tools {
+    order: 2;
+  }
+  .header-nav {
+    order: 3;
+    width: 100%;
+    margin-left: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 16px;
+    padding-top: 4px;
+    padding-bottom: 2px;
+  }
+  .header-nav::-webkit-scrollbar {
+    display: none;
+  }
+  .page-container {
+    padding: 20px 16px 100px;
+  }
   .metrics-grid {
     grid-template-columns: repeat(2, 1fr);
   }

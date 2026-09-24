@@ -20,16 +20,37 @@
 </head>
 <body>
 
-  <!-- Top Utility Header (Matching Cloudflare Kumo Top Bar) -->
+  <!-- Top Header with Brand, Text Navigation, and Controls -->
   <header class="site-header">
     <div class="header-inner">
-      <!-- Left: Brand Wordmark -->
-      <a href="#" class="brand-link" onclick="switchTab('overview'); return false;">
-        <svg class="brand-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <polygon points="12,4 21,19 3,19" />
-        </svg>
-        <span class="brand-text">dirichlet</span>
-      </a>
+      <div class="header-brand-group">
+        <!-- Left: Brand Wordmark -->
+        <a href="#" class="brand-link" onclick="switchTab('overview'); return false;">
+          <svg class="brand-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <polygon points="12,4 21,19 3,19" />
+          </svg>
+          <span class="brand-text">dirichlet</span>
+        </a>
+      </div>
+
+      <!-- Center/Left: Navigation Text Links (Bold when active) -->
+      <nav class="header-nav" aria-label="Status Views" role="tablist">
+        <button type="button" class="header-nav-link active" role="tab" id="tab-overview" onclick="switchTab('overview')">
+          Overview
+        </button>
+        <button type="button" class="header-nav-link" role="tab" id="tab-services" onclick="switchTab('services')">
+          Services &amp; Sites
+        </button>
+        <button type="button" class="header-nav-link" role="tab" id="tab-metrics" onclick="switchTab('metrics')">
+          Metrics
+        </button>
+        <button type="button" class="header-nav-link" role="tab" id="tab-locations" onclick="switchTab('locations')">
+          Locations
+        </button>
+        <button type="button" class="header-nav-link" role="tab" id="tab-history" onclick="switchTab('history')">
+          History
+        </button>
+      </nav>
 
       <!-- Right: Utility Links & Timezone Selector -->
       <div class="header-right-tools">
@@ -46,27 +67,6 @@
       </div>
     </div>
   </header>
-
-  <!-- Centered Segmented Navigation Capsule -->
-  <nav class="segmented-nav-wrapper" aria-label="Status Views">
-    <div class="segmented-capsule" role="tablist">
-      <button type="button" class="capsule-tab active" role="tab" id="tab-overview" onclick="switchTab('overview')">
-        Overview
-      </button>
-      <button type="button" class="capsule-tab" role="tab" id="tab-services" onclick="switchTab('services')">
-        Services &amp; Sites
-      </button>
-      <button type="button" class="capsule-tab" role="tab" id="tab-metrics" onclick="switchTab('metrics')">
-        Metrics
-      </button>
-      <button type="button" class="capsule-tab" role="tab" id="tab-locations" onclick="switchTab('locations')">
-        Locations
-      </button>
-      <button type="button" class="capsule-tab" role="tab" id="tab-history" onclick="switchTab('history')">
-        History
-      </button>
-    </div>
-  </nav>
 
   <!-- Main Content Container -->
   <main class="page-container" id="main-content">
