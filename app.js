@@ -8,6 +8,20 @@ let activeTab = "overview";
 let activeTheme = "dark";
 let useUtc = false;
 
+// Restore saved preferences from localStorage
+try {
+  const savedTheme = localStorage.getItem("dirichlet_theme");
+  if (savedTheme === "light" || savedTheme === "dark") {
+    activeTheme = savedTheme;
+  }
+  const savedTz = localStorage.getItem("dirichlet_timezone");
+  if (savedTz === "utc") {
+    useUtc = true;
+  } else if (savedTz === "local") {
+    useUtc = false;
+  }
+} catch (e) {}
+
 // Telemetry & Metrics Data (Turso backend snapshot)
 const DEFAULT_METRICS = Array.from({ length: 60 }, (_, i) => {
   const date = new Date(Date.now() - (60 - i) * 5 * 60 * 1000);
@@ -1306,6 +1320,10 @@ function switchTab(tabId, updateUrl = true) {
 
 function toggleTimezone() {
   useUtc = !useUtc;
+  try {
+    localStorage.setItem("dirichlet_timezone", useUtc ? "utc" : "local");
+  } catch (e) {}
+
   const label = document.getElementById("tz-label");
   if (label) {
     label.textContent = useUtc ? "UTC time" : "Local time";
@@ -1330,6 +1348,10 @@ function cycleTheme() {
     html.setAttribute("data-theme", "dark");
     if (icon) icon.className = "ph ph-moon";
   }
+
+  try {
+    localStorage.setItem("dirichlet_theme", activeTheme);
+  } catch (e) {}
 
   updateMapTileLayer();
 }
@@ -3530,6 +3552,17 @@ window.addEventListener("resize", () => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Sync UI elements with restored localStorage preferences
+  document.documentElement.setAttribute("data-theme", activeTheme);
+  const icon = document.getElementById("theme-icon");
+  if (icon) {
+    icon.className = activeTheme === "light" ? "ph ph-sun" : "ph ph-moon";
+  }
+  const tzLabel = document.getElementById("tz-label");
+  if (tzLabel) {
+    tzLabel.textContent = useUtc ? "UTC time" : "Local time";
+  }
+
   renderOverview();
   renderServices();
   renderLocations();

@@ -6,6 +6,18 @@
   <title>Dirichlet System Status</title>
   <meta name="description" content="Real-time operational status for Dirichlet L7 Edge Security Proxy, Feature Extraction Pipeline, and Global Edge Infrastructure.">
   
+  <!-- Instant Theme Initializer (prevents flash on reload) -->
+  <script>
+    (function() {
+      try {
+        var t = localStorage.getItem("dirichlet_theme");
+        if (t === "light" || t === "dark") {
+          document.documentElement.setAttribute("data-theme", t);
+        }
+      } catch (e) {}
+    })();
+  </script>
+  
   <!-- Phosphor Icons (Regular, Bold, Fill) -->
   <link rel="stylesheet" type="text/css" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
   <link rel="stylesheet" type="text/css" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
