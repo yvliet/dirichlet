@@ -411,6 +411,81 @@
       </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- VIEW 5: INCIDENT DETAIL                    -->
+    <!-- ========================================== -->
+    <div id="view-incident-detail" class="tab-view" style="display: none;">
+      <!-- Back Navigation Row -->
+      <div class="incident-nav-row">
+        <button type="button" class="btn-incident-back" onclick="goBackFromIncident()">
+          <i class="ph-bold ph-arrow-left"></i>
+          <span>Back</span>
+        </button>
+      </div>
+
+      <!-- Incident Header Banner (Impact, Last updated, Refresh) -->
+      <div class="incident-header-meta">
+        <span class="incident-impact-pill" id="incident-detail-impact">Minor Impact</span>
+        <span class="incident-meta-text" id="incident-detail-last-updated">Last updated: Just now</span>
+        <div class="incident-meta-right">
+          <span class="incident-meta-text" id="incident-detail-refreshed">Refreshed just now</span>
+          <button type="button" class="incident-refresh-btn" id="incident-refresh-btn" onclick="refreshIncidentDetail()" aria-label="Refresh incident status">
+            <i class="ph-bold ph-arrows-clockwise" id="incident-refresh-icon"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Incident Title -->
+      <h1 class="incident-detail-title" id="incident-detail-title">
+        Incident Details
+      </h1>
+
+      <!-- Started & Resolved Timestamps Row -->
+      <div class="incident-timestamps-bar">
+        <div class="timestamp-col">
+          <span class="timestamp-label">Started</span>
+          <span class="timestamp-value" id="incident-detail-started">—</span>
+        </div>
+        <div class="timestamp-col" id="incident-resolved-col">
+          <span class="timestamp-label">Resolved</span>
+          <span class="timestamp-value" id="incident-detail-resolved">—</span>
+        </div>
+      </div>
+
+      <!-- Two-Column Layout: Timeline (Left) & Affected Services (Right) -->
+      <div class="incident-body-grid">
+        <!-- Left: Chronological Vertical Timeline Rail -->
+        <section class="incident-timeline-section">
+          <h2 class="incident-section-title">Timeline</h2>
+          <div class="incident-timeline-container">
+            <div class="timeline-vertical-rail" aria-hidden="true"></div>
+            <ol class="timeline-nodes-list" id="incident-detail-timeline" aria-label="Incident timeline">
+              <!-- Rendered dynamically -->
+            </ol>
+          </div>
+        </section>
+
+        <!-- Right: Affected Services Sidebar -->
+        <aside class="incident-sidebar">
+          <div class="affected-services-card">
+            <div class="affected-services-header">
+              <span class="affected-services-title">Affected services</span>
+              <span class="affected-services-count" id="incident-detail-service-count">1 Total</span>
+            </div>
+            <div class="affected-services-grid" id="incident-detail-services">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Root Cause / Technical Context Card -->
+          <div class="incident-info-card" id="incident-root-cause-card" style="display: none;">
+            <div class="info-card-header">Root Cause &amp; Mitigation</div>
+            <div class="info-card-body" id="incident-detail-root-cause"></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
   </main>
 
   <!-- Centered Arrowhead Tooltip -->

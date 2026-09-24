@@ -97,6 +97,16 @@ const SERVICE_GROUPS = [
 // 1.2 Recent Incidents Data
 const RECENT_INCIDENTS = [
   {
+    id: "inc-2026-09-24-bgp",
+    title: "Customers using BYOIP can have issues updating their BGP prefixes, including advertising or withdrawing prefixes.",
+    impact: "Minor",
+    status: "Resolved",
+    date: "24 Sept 2026, 17.25",
+    type: "incident",
+    service: "fl2"
+  },
+  {
+    id: "inc-2026-09-24-auth",
     title: "Intermittent authentication errors for API and R2",
     impact: "Minor",
     status: "Resolved",
@@ -105,6 +115,7 @@ const RECENT_INCIDENTS = [
     service: "api"
   },
   {
+    id: "inc-2026-09-24-cache",
     title: "Elevated Errors with any / all in http_response_cache_settings",
     impact: "Minor",
     status: "Resolved",
@@ -113,6 +124,7 @@ const RECENT_INCIDENTS = [
     service: "fl2"
   },
   {
+    id: "inc-2026-09-22-do",
     title: "Increased Errors for Durable Objects",
     impact: "Minor",
     status: "Resolved",
@@ -121,6 +133,7 @@ const RECENT_INCIDENTS = [
     service: "api"
   },
   {
+    id: "inc-2026-09-21-r2-au",
     title: "Elevated number of R2 503 errors in Australian Eastern Coast region",
     impact: "Minor",
     status: "Resolved",
@@ -129,6 +142,7 @@ const RECENT_INCIDENTS = [
     service: "fl2"
   },
   {
+    id: "inc-2026-09-20-dns",
     title: "Issues with 1.1.1.1 for Families",
     impact: "Minor",
     status: "Resolved",
@@ -141,6 +155,7 @@ const RECENT_INCIDENTS = [
 // 1.3 Active Maintenance Data
 const ACTIVE_MAINTENANCE = [
   {
+    id: "maint-zrh-2026-09-24",
     title: "ZRH (Zurich) on 2026-09-24",
     status: "In Progress",
     date: "24 Sept 2026, 7.00",
@@ -148,6 +163,7 @@ const ACTIVE_MAINTENANCE = [
     location: "ZRH"
   },
   {
+    id: "maint-waw-2026-09-23",
     title: "WAW (Warsaw) on 2026-09-23",
     status: "In Progress",
     date: "24 Sept 2026, 6.00",
@@ -369,21 +385,34 @@ const HISTORY_RECORDS = [
 // 2. TAB ROUTING & CONTROLS
 // ============================================================================
 
+let previousTabBeforeIncident = "overview";
+let currentOpenIncidentId = null;
+
 function switchTab(tabId) {
+  if (tabId !== "incident-detail") {
+    currentOpenIncidentId = null;
+    if (window.location.hash.startsWith("#incident/")) {
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+  }
   activeTab = tabId;
-  const tabs = ["overview", "services", "metrics", "locations", "history"];
+  const tabs = ["overview", "services", "metrics", "locations", "history", "incident-detail"];
 
   tabs.forEach(t => {
     const btn = document.getElementById(`tab-${t}`);
     const view = document.getElementById(`view-${t}`);
-    if (btn && view) {
+    if (view) {
       if (t === tabId) {
-        btn.classList.add("active");
-        btn.setAttribute("aria-selected", "true");
+        if (btn) {
+          btn.classList.add("active");
+          btn.setAttribute("aria-selected", "true");
+        }
         view.style.display = "block";
       } else {
-        btn.classList.remove("active");
-        btn.setAttribute("aria-selected", "false");
+        if (btn) {
+          btn.classList.remove("active");
+          btn.setAttribute("aria-selected", "false");
+        }
         view.style.display = "none";
       }
     }
@@ -410,6 +439,11 @@ function toggleTimezone() {
   if (label) {
     label.textContent = useUtc ? "UTC time" : "Local time";
   }
+  if (currentOpenIncidentId && document.getElementById("view-incident-detail")?.style.display !== "none") {
+    openIncidentDetail(currentOpenIncidentId, false);
+  }
+  renderOverview();
+  renderHistory();
 }
 
 function cycleTheme() {
@@ -453,6 +487,7 @@ function formatIncidentDate(isoString) {
 function getEffectiveIncidents() {
   if (incidentsData && incidentsData.length > 0) {
     return incidentsData.map(inc => ({
+      id: inc.id,
       title: inc.title,
       impact: inc.severity === "critical" ? "Critical" : inc.severity === "major" ? "Major" : "Minor",
       status: inc.status === "resolved" ? "Resolved" : inc.status === "investigating" ? "Investigating" : "Identified",
@@ -471,8 +506,8 @@ function renderOverview() {
   const recentContainer = document.getElementById("recent-incidents-list");
   if (recentContainer) {
     const incidents = getEffectiveIncidents();
-    recentContainer.innerHTML = incidents.slice(0, 5).map(inc => `
-      <div class="incident-row">
+    recentContainer.innerHTML = incidents.slice(0, 6).map(inc => `
+      <div class="incident-row" onclick="openIncidentDetail('${inc.id}')" data-incident-id="${inc.id}" role="button" tabindex="0">
         <div class="row-left">
           <span class="status-dot-circle ${inc.dotClass}"></span>
           <span class="row-title">${inc.title}</span>
@@ -490,7 +525,7 @@ function renderOverview() {
   const maintContainer = document.getElementById("active-maintenance-list");
   if (maintContainer) {
     maintContainer.innerHTML = ACTIVE_MAINTENANCE.map(maint => `
-      <div class="maintenance-row">
+      <div class="maintenance-row" onclick="openIncidentDetail('${maint.id}')" data-incident-id="${maint.id}" role="button" tabindex="0">
         <div class="row-left">
           <span class="status-dot-circle blue"></span>
           <span class="row-title">${maint.title}</span>
@@ -786,7 +821,7 @@ function renderHistory() {
   });
 
   container.innerHTML = filtered.map(item => `
-    <div class="incident-row">
+    <div class="incident-row" onclick="openIncidentDetail('${item.id}')" data-incident-id="${item.id}" role="button" tabindex="0">
       <div class="row-left">
         <span class="status-dot-circle ${item.dotClass}"></span>
         <span class="row-title">${item.title}</span>
@@ -802,6 +837,401 @@ function renderHistory() {
 
 function filterHistory() {
   renderHistory();
+}
+
+// ============================================================================
+// 3.4.1 INCIDENT DETAIL CONTROLLER & FORMATTERS
+// ============================================================================
+
+const SERVICE_NAME_LOOKUP = {
+  "svc-fl2": "Core FL2 Proxy Engine (Rust [Feature; 200])",
+  "svc-ja4": "JA4 / JA3 Cryptographic Fingerprint Evaluator",
+  "svc-tcp": "TCP Transport & SYN-ACK Latency Evaluator",
+  "svc-h2": "HTTP/2 & HTTP/3 Frame Protocol Analyzer",
+  "svc-entropy": "Shannon Header & Request Entropy Scorer",
+  "svc-ip": "Bring Your Own IP (BYOIP)",
+  "svc-hints": "Client Hints & Behavioral Biometrics Engine",
+  "svc-cdn": "CDN/Cache Rules Engine",
+  "svc-online": "Always Online",
+  "svc-reserve": "Cache Reserve",
+  "svc-purge": "CDN Cache Purge",
+  "svc-connector": "Cloud Connector",
+  "svc-catalog": "ClickHouse Catalog Introspection (system.columns)",
+  "svc-registry": "Dynamic Feature Registry (KNOWN_FEATURES)",
+  "svc-payload": "Dynamic JSON Payload Distributor (features.json)",
+  "svc-ch-cluster": "ClickHouse Sharded Analytics Cluster",
+  "svc-shards": "Shard Replica Tables (events_r0 / events_r1)",
+  "svc-kv": "Distributed Edge KV & Durable Objects",
+  "svc-api": "API & Scoped Edge Tokens",
+  "svc-dns": "1.1.1.1 DNS Resolver"
+};
+
+function formatTimestampForTimezone(isoString) {
+  if (!isoString) return "—";
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return isoString;
+
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    if (useUtc) {
+      const day = d.getUTCDate();
+      const month = months[d.getUTCMonth()];
+      const year = d.getUTCFullYear();
+      const hours = String(d.getUTCHours()).padStart(2, "0");
+      const mins = String(d.getUTCMinutes()).padStart(2, "0");
+      return `${day} ${month} ${year}, ${hours}.${mins} UTC`;
+    } else {
+      const day = d.getDate();
+      const month = months[d.getMonth()];
+      const year = d.getFullYear();
+      const hours = d.getHours();
+      const mins = String(d.getMinutes()).padStart(2, "0");
+
+      let tzSuffix = "";
+      try {
+        const parts = new Intl.DateTimeFormat(undefined, { timeZoneName: "short" }).formatToParts(d);
+        const tz = parts.find(p => p.type === "timeZoneName");
+        if (tz && tz.value) tzSuffix = " " + tz.value;
+      } catch (_) {}
+
+      return `${day} ${month} ${year}, ${hours}.${mins}${tzSuffix}`;
+    }
+  } catch (_) {
+    return isoString;
+  }
+}
+
+function formatRelativeTime(isoString) {
+  if (!isoString) return "";
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return "";
+    const diffMs = Date.now() - d.getTime();
+    if (diffMs < 0) return "Upcoming";
+    const diffSecs = Math.floor(diffMs / 1000);
+    if (diffSecs < 60) return "Just now";
+    const diffMins = Math.floor(diffSecs / 60);
+    if (diffMins < 60) return `${diffMins} ${diffMins === 1 ? 'min' : 'mins'} ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours} ${diffHours === 1 ? 'hour' : 'hours'} ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`;
+  } catch (_) {
+    return "";
+  }
+}
+
+function findIncidentById(id) {
+  if (!id) return null;
+
+  // 1. Search dynamic incidents loaded from Turso / data/incidents.json
+  if (incidentsData && incidentsData.length > 0) {
+    const found = incidentsData.find(inc => inc.id === id);
+    if (found) return found;
+  }
+
+  // 2. Search RECENT_INCIDENTS fallback
+  const recFound = RECENT_INCIDENTS.find(inc => inc.id === id);
+  if (recFound) {
+    return {
+      id: recFound.id,
+      title: recFound.title,
+      service: recFound.service || "fl2",
+      service_group: "group-proxy",
+      severity: (recFound.impact || "minor").toLowerCase(),
+      status: (recFound.status || "resolved").toLowerCase(),
+      impact: `${recFound.impact || "Minor"} Impact`,
+      root_cause: "Subsystem transient telemetry deviation",
+      started_at: "2026-09-24T10:22:34.763Z",
+      resolved_at: "2026-09-24T10:25:52.106Z",
+      updates: [
+        {
+          time: "2026-09-24T10:25:52.106Z",
+          status: "resolved",
+          title: "Resolved",
+          message: `This incident has been resolved. Error rates and latency across ${recFound.title} returned to normal operating parameters.`
+        },
+        {
+          time: "2026-09-24T10:22:34.862Z",
+          status: "investigating",
+          title: "Investigating",
+          message: `We are currently investigating elevated errors and transient performance degradation regarding ${recFound.title}.`
+        }
+      ]
+    };
+  }
+
+  // 3. Search maintenance records
+  const maintFound = ACTIVE_MAINTENANCE.find(m => m.id === id || `maint-${m.location}` === id || m.location === id);
+  if (maintFound) {
+    return {
+      id: maintFound.id || id,
+      title: maintFound.title,
+      service: maintFound.location || "fl2",
+      service_group: "group-proxy",
+      severity: "maintenance",
+      status: "in_progress",
+      impact: "Scheduled Maintenance",
+      root_cause: `Planned core edge network and routing maintenance in ${maintFound.location || "regional PoP"}.`,
+      started_at: "2026-09-24T06:00:00.000Z",
+      resolved_at: null,
+      updates: [
+        {
+          time: "2026-09-24T06:30:00.000Z",
+          status: "in_progress",
+          title: "In Progress",
+          message: `Maintenance is actively in progress. Edge traffic is successfully re-routed to adjacent PoPs with zero service interruption.`
+        },
+        {
+          time: "2026-09-24T06:00:00.000Z",
+          status: "scheduled",
+          title: "Scheduled",
+          message: `Scheduled window begins for router firmware upgrades and fiber circuit verification at ${maintFound.location}.`
+        }
+      ]
+    };
+  }
+
+  // 4. Search history records
+  const histFound = HISTORY_RECORDS.find(h => h.id === id);
+  if (histFound) {
+    const isMaint = histFound.type === "maintenance";
+    return {
+      id: histFound.id,
+      title: histFound.title,
+      service: histFound.service || "fl2",
+      service_group: "group-proxy",
+      severity: isMaint ? "maintenance" : (histFound.impact || "minor").toLowerCase(),
+      status: (histFound.status || "resolved").toLowerCase().replace(" ", "_"),
+      impact: isMaint ? "Scheduled Maintenance" : `${histFound.impact || "Minor"} Impact`,
+      root_cause: `Routine infrastructure lifecycle operation for ${histFound.title}.`,
+      started_at: "2026-09-23T18:00:00.000Z",
+      resolved_at: histFound.status === "Completed" ? "2026-09-23T20:00:00.000Z" : null,
+      updates: [
+        {
+          time: "2026-09-23T20:00:00.000Z",
+          status: histFound.status === "Completed" ? "resolved" : "in_progress",
+          title: histFound.status,
+          message: `${histFound.title} has completed all standard operational verification gates.`
+        }
+      ]
+    };
+  }
+
+  return null;
+}
+
+function openIncidentDetail(incidentId, pushState = true) {
+  if (!incidentId) return;
+
+  if (activeTab !== "incident-detail") {
+    previousTabBeforeIncident = activeTab;
+  }
+  currentOpenIncidentId = incidentId;
+
+  const incident = findIncidentById(incidentId);
+  if (!incident) {
+    console.warn("[app] Incident not found for id:", incidentId);
+    return;
+  }
+
+  if (pushState) {
+    window.location.hash = "incident/" + encodeURIComponent(incidentId);
+  }
+
+  showIncidentDetail(incident);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function showIncidentDetail(incident) {
+  // 1. Hide all main tabs
+  const tabs = ["overview", "services", "metrics", "locations", "history"];
+  tabs.forEach(t => {
+    const btn = document.getElementById(`tab-${t}`);
+    const view = document.getElementById(`view-${t}`);
+    if (btn) {
+      btn.classList.remove("active");
+      btn.setAttribute("aria-selected", "false");
+    }
+    if (view) view.style.display = "none";
+  });
+
+  // 2. Show Incident Detail View
+  const detailView = document.getElementById("view-incident-detail");
+  if (!detailView) return;
+  detailView.style.display = "block";
+  activeTab = "incident-detail";
+
+  // 3. Populate Header Pill & Meta
+  const impactElem = document.getElementById("incident-detail-impact");
+  const lastUpdatedElem = document.getElementById("incident-detail-last-updated");
+  const titleElem = document.getElementById("incident-detail-title");
+  const startedElem = document.getElementById("incident-detail-started");
+  const resolvedElem = document.getElementById("incident-detail-resolved");
+  const resolvedCol = document.getElementById("incident-resolved-col");
+
+  const severity = (incident.severity || "minor").toLowerCase();
+  let impactLabel = "Minor Impact";
+  let pillClass = "impact-minor";
+
+  if (severity === "critical") {
+    impactLabel = "Critical Outage";
+    pillClass = "impact-critical";
+  } else if (severity === "major") {
+    impactLabel = "Major Impact";
+    pillClass = "impact-major";
+  } else if (severity === "maintenance") {
+    impactLabel = "Maintenance";
+    pillClass = "impact-maintenance";
+  } else if (incident.status === "resolved") {
+    impactLabel = incident.impact ? incident.impact : "Minor Impact";
+    pillClass = "impact-minor";
+  }
+
+  if (impactElem) {
+    impactElem.className = `incident-impact-pill ${pillClass}`;
+    impactElem.textContent = impactLabel;
+  }
+
+  // Latest update relative time
+  const updates = incident.updates || [];
+  const latestUpdate = updates.length > 0 ? updates[0] : null;
+  const latestTime = latestUpdate?.time || incident.resolved_at || incident.started_at;
+  const relTimeStr = formatRelativeTime(latestTime);
+
+  if (lastUpdatedElem) {
+    lastUpdatedElem.textContent = relTimeStr ? `Last updated: ${relTimeStr}` : "Last updated: Just now";
+  }
+
+  const refreshedElem = document.getElementById("incident-detail-refreshed");
+  if (refreshedElem) {
+    refreshedElem.textContent = "Refreshed just now";
+  }
+
+  // 4. Title
+  if (titleElem) {
+    titleElem.textContent = incident.title;
+  }
+
+  // 5. Timestamps
+  if (startedElem) {
+    startedElem.textContent = formatTimestampForTimezone(incident.started_at);
+  }
+
+  if (resolvedElem && resolvedCol) {
+    if (incident.resolved_at) {
+      resolvedCol.style.display = "flex";
+      resolvedElem.textContent = formatTimestampForTimezone(incident.resolved_at);
+    } else {
+      resolvedCol.style.display = "flex";
+      resolvedElem.textContent = "In Progress";
+    }
+  }
+
+  // 6. Timeline stream
+  const timelineContainer = document.getElementById("incident-detail-timeline");
+  if (timelineContainer) {
+    if (updates.length === 0) {
+      timelineContainer.innerHTML = `
+        <li class="timeline-node">
+          <span class="timeline-dot resolved"></span>
+          <div class="timeline-node-header">
+            <span class="timeline-status-name">Resolved</span>
+            <span class="timeline-rel-time">Recorded</span>
+          </div>
+          <div class="timeline-node-timestamp">${formatTimestampForTimezone(incident.started_at)}</div>
+          <p class="timeline-node-body">Incident resolved. Normal telemetry verified.</p>
+        </li>
+      `;
+    } else {
+      timelineContainer.innerHTML = updates.map(u => {
+        const statusKey = (u.status || "investigating").toLowerCase();
+        let dotClass = "investigating";
+        if (statusKey === "resolved" || statusKey === "completed") {
+          dotClass = "resolved";
+        } else if (statusKey === "monitoring") {
+          dotClass = "monitoring";
+        } else if (statusKey === "identified") {
+          dotClass = "identified";
+        }
+
+        const titleText = u.title || (statusKey.charAt(0).toUpperCase() + statusKey.slice(1));
+        const relTime = formatRelativeTime(u.time);
+        const absTime = formatTimestampForTimezone(u.time);
+
+        return `
+          <li class="timeline-node">
+            <span class="timeline-dot ${dotClass}"></span>
+            <div class="timeline-node-header">
+              <span class="timeline-status-name">${titleText}</span>
+              ${relTime ? `<span class="timeline-rel-time">${relTime}</span>` : ""}
+            </div>
+            <div class="timeline-node-timestamp">${absTime}</div>
+            <p class="timeline-node-body">${u.message}</p>
+          </li>
+        `;
+      }).join("");
+    }
+  }
+
+  // 7. Affected Services Sidebar
+  const servicesContainer = document.getElementById("incident-detail-services");
+  const countElem = document.getElementById("incident-detail-service-count");
+
+  const serviceCode = incident.service || "fl2";
+  const serviceDisplayName = SERVICE_NAME_LOOKUP[serviceCode] || incident.service_name || serviceCode;
+
+  if (countElem) {
+    countElem.textContent = "1 Total";
+  }
+
+  if (servicesContainer) {
+    servicesContainer.innerHTML = `
+      <a href="#services" class="affected-service-pill" onclick="switchTab('services'); return false;" title="View in Services & Sites">
+        <span class="service-pill-name">${serviceDisplayName}</span>
+        <i class="ph-bold ph-caret-right" style="color: var(--text-dim); font-size: 0.75rem;"></i>
+      </a>
+    `;
+  }
+
+  // 8. Root Cause Card
+  const rootCauseCard = document.getElementById("incident-root-cause-card");
+  const rootCauseBody = document.getElementById("incident-detail-root-cause");
+  if (rootCauseCard && rootCauseBody) {
+    if (incident.root_cause) {
+      rootCauseCard.style.display = "block";
+      rootCauseBody.textContent = incident.root_cause;
+    } else {
+      rootCauseCard.style.display = "none";
+    }
+  }
+}
+
+function goBackFromIncident() {
+  const targetTab = previousTabBeforeIncident || "overview";
+  switchTab(targetTab);
+}
+
+function refreshIncidentDetail() {
+  const icon = document.getElementById("incident-refresh-icon");
+  if (icon) {
+    icon.classList.remove("spin");
+    void icon.offsetWidth;
+    icon.classList.add("spin");
+    setTimeout(() => icon.classList.remove("spin"), 600);
+  }
+
+  const refreshedElem = document.getElementById("incident-detail-refreshed");
+  if (refreshedElem) {
+    refreshedElem.textContent = "Refreshed just now";
+  }
+
+  loadTelemetryData();
+  if (currentOpenIncidentId) {
+    const inc = findIncidentById(currentOpenIncidentId);
+    if (inc) showIncidentDetail(inc);
+  }
+  showToast("Incident status refreshed");
 }
 
 // ============================================================================
@@ -1149,7 +1579,7 @@ function setSystemState(state, telemetry) {
     if (activeSection) activeSection.style.display = "block";
     if (activeList) {
       activeList.innerHTML = `
-        <div class="active-incident-card">
+        <div class="active-incident-card" onclick="openIncidentDetail('inc-2026-09-24-drift')" data-incident-id="inc-2026-09-24-drift" role="button" tabindex="0">
           <div class="active-incident-main">
             <div class="active-incident-title">
               CRITICAL: L7 Edge Proxy Ingestion Panic (TryFromSliceError)
@@ -1158,7 +1588,7 @@ function setSystemState(state, telemetry) {
           </div>
           <span class="active-incident-badge outage">Investigating</span>
         </div>
-        <div class="active-incident-card">
+        <div class="active-incident-card" onclick="openIncidentDetail('inc-2026-09-18-shards')" data-incident-id="inc-2026-09-18-shards" role="button" tabindex="0">
           <div class="active-incident-main">
             <div class="active-incident-title">
               Cross-Boundary Schema Reflection Cardinality Drift (280 Features)
@@ -1207,7 +1637,7 @@ function setSystemState(state, telemetry) {
     if (activeSection) activeSection.style.display = "block";
     if (activeList) {
       activeList.innerHTML = `
-        <div class="active-incident-card">
+        <div class="active-incident-card" onclick="openIncidentDetail('inc-2026-09-24-drift')" data-incident-id="inc-2026-09-24-drift" role="button" tabindex="0">
           <div class="active-incident-main">
             <div class="active-incident-title">
               RESOLVED: In-Place Partial Selection Shed 80 Shadow Columns (100% Uptime)
@@ -1561,7 +1991,11 @@ Object.assign(window, {
   toggleLocationSubscription,
   toggleSubscription,
   showToast,
-  subscribeToUpdates
+  subscribeToUpdates,
+  openIncidentDetail,
+  showIncidentDetail,
+  goBackFromIncident,
+  refreshIncidentDetail
 });
 window.addEventListener("scroll", hideArrowTooltip, { passive: true });
 
@@ -1863,8 +2297,14 @@ function focusPopCode(code) {
 }
 
 function applyInitialStateFromUrl() {
+  const rawHash = window.location.hash.replace("#", "");
+  if (rawHash.startsWith("incident/")) {
+    const incId = decodeURIComponent(rawHash.replace("incident/", ""));
+    openIncidentDetail(incId, false);
+    return;
+  }
   const params = new URLSearchParams(window.location.search);
-  const stateParam = params.get("state") || window.location.hash.replace("#", "");
+  const stateParam = params.get("state") || rawHash;
   if (["nominal", "break", "recover"].includes(stateParam)) {
     setSystemState(stateParam);
   }
@@ -1912,6 +2352,10 @@ async function loadTelemetryData() {
           incidentsData = remoteIncidents;
           renderOverview();
           renderHistory();
+          if (currentOpenIncidentId && document.getElementById("view-incident-detail")?.style.display !== "none") {
+            const currentInc = findIncidentById(currentOpenIncidentId);
+            if (currentInc) showIncidentDetail(currentInc);
+          }
         }
       }
     }
