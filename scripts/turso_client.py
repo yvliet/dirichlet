@@ -17,7 +17,6 @@ from typing import Any, Dict, List, Optional
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = REPO_ROOT / "data"
 STATUS_FILE = REPO_ROOT / "status.json"
-CRATE_WEB_DIR = REPO_ROOT / "crates" / "dirichlet-proxy" / "web"
 
 
 def load_env() -> tuple[Optional[str], Optional[str]]:
@@ -126,8 +125,6 @@ def export_snapshots_to_disk() -> bool:
 
     status_json = json.dumps(status_payload, indent=2)
     STATUS_FILE.write_text(status_json, encoding="utf-8")
-    if CRATE_WEB_DIR.exists():
-        (CRATE_WEB_DIR / "status.json").write_text(status_json, encoding="utf-8")
 
     # 2. incidents -> data/incidents.json
     raw_incidents = results[1]["rows"]
@@ -173,12 +170,6 @@ def export_snapshots_to_disk() -> bool:
 
     metrics_json = json.dumps(metrics_list, indent=2)
     (DATA_DIR / "metrics_timeseries.json").write_text(metrics_json, encoding="utf-8")
-
-    if CRATE_WEB_DIR.exists():
-        crate_data = CRATE_WEB_DIR / "data"
-        crate_data.mkdir(parents=True, exist_ok=True)
-        (crate_data / "incidents.json").write_text(json.dumps(incidents_list, indent=2), encoding="utf-8")
-        (crate_data / "metrics_timeseries.json").write_text(metrics_json, encoding="utf-8")
 
     print(f"[turso-client] Exported {len(incidents_list)} incidents and {len(metrics_list)} metric points to data/")
     return True
