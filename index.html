@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dirichlet System Status</title>
+  <meta name="description" content="Real-time operational status for Dirichlet L7 Edge Security Proxy, Feature Extraction Pipeline, and Global Edge Infrastructure.">
+  
+  <!-- Phosphor Icons (Regular, Bold, Fill) -->
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+  
+  <!-- Leaflet Map Assets -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+</head>
+<body>
+
+  <!-- Top Utility Header (Matching Cloudflare Kumo Top Bar) -->
+  <header class="site-header">
+    <div class="header-inner">
+      <!-- Left: Brand Wordmark -->
+      <a href="#" class="brand-link" onclick="switchTab('overview'); return false;">
+        <svg class="brand-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <polygon points="12,4 21,19 3,19" />
+        </svg>
+        <span class="brand-text">dirichlet</span>
+      </a>
+
+      <!-- Right: Utility Links & Timezone Selector -->
+      <div class="header-right-tools">
+        <a href="#support" class="nav-text-link" onclick="return false;">Support</a>
+        <a href="#dashboard" class="nav-text-link" onclick="return false;">Dashboard</a>
+        
+        <div class="select-wrapper">
+          <button type="button" class="kumo-select-btn" id="timezone-btn" onclick="toggleTimezone()">
+            <span id="tz-label">Local time</span>
+            <i class="ph-bold ph-caret-up-down select-caret"></i>
+          </button>
+        </div>
+
+        <button type="button" class="theme-toggle-btn" id="theme-btn" onclick="cycleTheme()" aria-label="Toggle Theme">
+          <i class="ph ph-moon" id="theme-icon"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Centered Segmented Navigation Capsule -->
+  <nav class="segmented-nav-wrapper" aria-label="Status Views">
+    <div class="segmented-capsule" role="tablist">
+      <button type="button" class="capsule-tab active" role="tab" id="tab-overview" onclick="switchTab('overview')">
+        Overview
+      </button>
+      <button type="button" class="capsule-tab" role="tab" id="tab-services" onclick="switchTab('services')">
+        Services &amp; Sites
+      </button>
+      <button type="button" class="capsule-tab" role="tab" id="tab-locations" onclick="switchTab('locations')">
+        Locations
+      </button>
+      <button type="button" class="capsule-tab" role="tab" id="tab-history" onclick="switchTab('history')">
+        History
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content Container -->
+  <main class="page-container" id="main-content">
+
+    <!-- ========================================== -->
+    <!-- VIEW 1: OVERVIEW                           -->
+    <!-- ========================================== -->
+    <div id="view-overview" class="tab-view active">
+      <!-- Page Hero Header -->
+      <div class="page-hero">
+        <h1 class="page-title">Dirichlet System Status</h1>
+        <button type="button" class="btn-subscribe" onclick="alert('Subscribed to Dirichlet incident notifications.')">
+          Subscribe to updates
+        </button>
+      </div>
+
+      <!-- Active Incidents Section -->
+      <section class="content-section" id="active-incidents-section" style="display: none;">
+        <div class="section-heading-row">
+          <h2 class="section-heading">Active incidents</h2>
+        </div>
+        <div class="incident-card-list" id="active-incidents-list">
+          <!-- Dynamically populated when Break or Recover is active -->
+        </div>
+      </section>
+
+      <!-- Recent Incidents Section -->
+      <section class="content-section">
+        <div class="section-heading-row">
+          <h2 class="section-heading">Recent incidents</h2>
+          <a href="#" class="heading-link" onclick="switchTab('history'); return false;">View All</a>
+        </div>
+        <div class="incident-card-list" id="recent-incidents-list">
+          <!-- Rendered by JavaScript -->
+        </div>
+      </section>
+
+      <!-- Active Maintenance Section -->
+      <section class="content-section">
+        <div class="section-heading-row">
+          <h2 class="section-heading">Active maintenance</h2>
+          <a href="#" class="heading-link" onclick="switchTab('history'); return false;">View All</a>
+        </div>
+        <div class="maintenance-card-list" id="active-maintenance-list">
+          <!-- Rendered by JavaScript -->
+        </div>
+        <div class="section-footer-link">
+          <a href="#" class="kumo-link" onclick="switchTab('history'); return false;">
+            <span>View all future maintenance</span>
+            <i class="ph-bold ph-caret-right"></i>
+          </a>
+        </div>
+      </section>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- VIEW 2: SERVICES & SITES                   -->
+    <!-- ========================================== -->
+    <div id="view-services" class="tab-view" style="display: none;">
+      <!-- Page Hero Header -->
+      <div class="page-hero">
+        <h1 class="page-title">Services &amp; sites</h1>
+        <p class="page-subtitle">Monitor the operational status of all 128 services and sites</p>
+        <button type="button" class="btn-subscribe" onclick="alert('Subscribed to Dirichlet service updates.')">
+          Subscribe to updates
+        </button>
+      </div>
+
+      <!-- Status Metric Counters Grid -->
+      <section class="metrics-grid" aria-label="Service Health Tallies">
+        <div class="metric-box">
+          <div class="metric-label">Operational</div>
+          <div class="metric-count count-operational" id="metric-operational">125</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">Degraded</div>
+          <div class="metric-count count-degraded" id="metric-degraded">3</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">Offline</div>
+          <div class="metric-count count-offline" id="metric-offline">0</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">Maintenance</div>
+          <div class="metric-count count-maintenance" id="metric-maintenance">0</div>
+        </div>
+      </section>
+
+      <!-- Search Services Input -->
+      <div class="kumo-search-container">
+        <i class="ph ph-magnifying-glass kumo-search-icon"></i>
+        <input type="text" id="service-search" class="kumo-search-input" placeholder="Search services" oninput="filterServices()">
+      </div>
+
+      <!-- Service Groups Accordion with Precision 90-Day Uptime Bars -->
+      <div id="service-groups-container">
+        <!-- Rendered by JavaScript -->
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- VIEW 3: LOCATIONS                          -->
+    <!-- ========================================== -->
+    <div id="view-locations" class="tab-view" style="display: none;">
+      <!-- Filter Bar: Search + Region Dropdown -->
+      <div class="locations-filter-row">
+        <div class="kumo-search-container search-flex">
+          <i class="ph ph-magnifying-glass kumo-search-icon"></i>
+          <input type="text" id="location-search" class="kumo-search-input" placeholder="Search by city, state or code" oninput="filterLocations()">
+        </div>
+        
+        <div class="region-select-box">
+          <select id="region-filter" class="kumo-select" onchange="filterLocations()">
+            <option value="all">All Regions</option>
+            <option value="Africa">Africa</option>
+            <option value="Asia">Asia</option>
+            <option value="Europe">Europe</option>
+            <option value="Latin America">Latin America</option>
+            <option value="North America">North America</option>
+            <option value="Oceania">Oceania</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Region Accordions & City Rows -->
+      <div id="locations-accordion-container">
+        <!-- Rendered by JavaScript -->
+      </div>
+
+      <!-- Collapsible Map View for Anycast Routing Verification -->
+      <div class="map-card" style="margin-top: 24px;">
+        <div class="map-header">
+          <span class="map-title"><i class="ph ph-globe"></i> Global Edge Anycast Topology</span>
+          <button type="button" class="map-reset-btn" onclick="resetMapView()">Reset View</button>
+        </div>
+        <div id="locations-map"></div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- VIEW 4: HISTORY                            -->
+    <!-- ========================================== -->
+    <div id="view-history" class="tab-view" style="display: none;">
+      <!-- Page Hero Header -->
+      <div class="page-hero">
+        <h1 class="page-title">Incident &amp; maintenance history</h1>
+      </div>
+
+      <!-- Filter Controls Card -->
+      <div class="history-filter-card">
+        <div class="filter-card-title">Filters</div>
+        <div class="filter-controls-grid">
+          <div class="filter-group">
+            <label class="filter-label" for="history-filter-type">Type</label>
+            <select id="history-filter-type" class="kumo-select" onchange="filterHistory()">
+              <option value="all">Incident &amp; Maintenance</option>
+              <option value="incident">Incidents Only</option>
+              <option value="maintenance">Maintenance Only</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label" for="history-filter-service">Service</label>
+            <select id="history-filter-service" class="kumo-select" onchange="filterHistory()">
+              <option value="all">All Services</option>
+              <option value="fl2">Core FL2 Proxy Engine</option>
+              <option value="catalog">ClickHouse Catalog Sync</option>
+              <option value="api">API &amp; Edge KV</option>
+              <option value="dns">1.1.1.1 Resolver</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label" for="history-filter-location">Location</label>
+            <select id="history-filter-location" class="kumo-select" onchange="filterHistory()">
+              <option value="all">All Locations</option>
+              <option value="ZRH">Zurich (ZRH)</option>
+              <option value="WAW">Warsaw (WAW)</option>
+              <option value="DAC">Dhaka (DAC)</option>
+              <option value="PER">Perth (PER)</option>
+              <option value="BNE">Brisbane (BNE)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chronological Incident & Maintenance History List -->
+      <div class="history-list" id="history-list-container">
+        <!-- Rendered by JavaScript -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Centered Arrowhead Tooltip -->
+  <div class="kumo-arrow-tooltip" id="kumo-arrow-tooltip"></div>
+
+  <!-- Subscription Toast Notification -->
+  <div class="kumo-toast" id="kumo-toast">
+    <i class="ph-fill ph-check-circle toast-blue-icon"></i>
+    <span id="toast-message">Subscribed to selection</span>
+  </div>
+
+  <!-- Floating Developer Simulator Dock (Pinned to Bottom-Center) -->
+  <aside class="floating-sim-dock" id="floating-sim-dock" aria-label="Incident Simulator Controls">
+    <div class="dock-header" onclick="toggleSimDock()">
+      <div class="dock-title-group">
+        <span class="dock-dot operational" id="dock-status-dot"></span>
+        <span class="dock-label">DIRICHLET SIMULATOR</span>
+        <span class="dock-state-badge" id="dock-state-badge">Nominal (200)</span>
+      </div>
+      <button type="button" class="dock-toggle-btn" id="dock-toggle-btn" aria-label="Toggle Simulator Controls">
+        <i class="ph-bold ph-caret-down" id="dock-toggle-icon"></i>
+      </button>
+    </div>
+    <div class="dock-controls" id="dock-controls">
+      <button type="button" class="dock-btn active" id="btn-state-nominal" onclick="setSystemState('nominal')">
+        <i class="ph-bold ph-play-circle dock-btn-icon"></i>
+        <span>Nominal (200 Signals)</span>
+      </button>
+      <button type="button" class="dock-btn dock-btn-break" id="btn-state-break" onclick="setSystemState('break')">
+        <i class="ph-bold ph-bug dock-btn-icon"></i>
+        <span>Break (280 Signals → 502)</span>
+      </button>
+      <button type="button" class="dock-btn dock-btn-recover" id="btn-state-recover" onclick="setSystemState('recover')">
+        <i class="ph-bold ph-arrows-clockwise dock-btn-icon"></i>
+        <span>Recover (In-Place Shed 80)</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Clean Enterprise Footer -->
+  <footer class="site-footer">
+    <div class="footer-container">
+      <div class="footer-copy">
+        &copy; 2026 Dirichlet Security Services
+      </div>
+      <div class="footer-links">
+        <a href="#" class="footer-link" onclick="switchTab('overview'); return false;">Overview</a>
+        <a href="#" class="footer-link" onclick="switchTab('services'); return false;">Services</a>
+        <a href="#" class="footer-link" onclick="switchTab('locations'); return false;">Locations</a>
+        <a href="#" class="footer-link" onclick="switchTab('history'); return false;">History</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

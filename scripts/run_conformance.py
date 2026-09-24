@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import datetime
 import hashlib
+import json
 import os
 import re
 import subprocess
@@ -45,6 +46,22 @@ SYM_DOT = "\u00b7"           # Middle dot (·)
 REPO_ROOT = Path(__file__).resolve().parent.parent
 EXTRACTOR = REPO_ROOT / "services" / "feature-pipeline" / "extractor.py"
 PROXY_CRATE_DIR = REPO_ROOT / "crates" / "dirichlet-proxy"
+WEB_STATUS_FILES = [
+    REPO_ROOT / "status.json",
+    PROXY_CRATE_DIR / "web" / "status.json",
+]
+
+
+def update_web_status(state: str, **kwargs) -> None:
+    """Synchronize state with status.json for live console updates."""
+    try:
+        data = {"state": state, "timestamp": time.time(), **kwargs}
+        payload = json.dumps(data, indent=2)
+        for target in WEB_STATUS_FILES:
+            if target.parent.exists():
+                target.write_text(payload, encoding="utf-8")
+    except Exception:
+        pass
 
 CONTRACT_FILES = [
     REPO_ROOT / "migrations" / "001_bot_signals.sql",
@@ -111,6 +128,7 @@ def main() -> None:
     if rc != 0:
         print(f"  {BADGE_FAIL}   Baseline Proxy Failed on Clean Payload:\n{err}")
         sys.exit(1)
+    update_web_status("nominal", active_features=200)
 
     # -------------------------------------------------------------------------
     # 2. Schema Drift Induction (Replication to 280 Features)
@@ -126,6 +144,7 @@ def main() -> None:
     rc, p_out, p_err = run_cmd(["cargo", "run", "-q", "--bin", "dirichlet-proxy"], cwd=PROXY_CRATE_DIR)
     if rc != 0 and "TryFromSliceError" in p_err and "unwrap" in p_err:
         panic_loc = extract_panic_location(p_err)
+        update_web_status("break", active_features=280, error="TryFromSliceError", panic_loc=panic_loc)
         print(f"  {BADGE_FAIL}   Unpatched Crash: {CRIMSON}TryFromSliceError{RESET} at {panic_loc}")
     else:
         print(f"  {BADGE_FAIL}   Expected TryFromSliceError was not triggered.\n{p_err}")
@@ -142,6 +161,7 @@ def main() -> None:
         print(f"  {BADGE_FAIL}   Hardened Ingestion Failed:\n{p_err}")
         sys.exit(1)
 
+    update_web_status("recover", active_features=200, dropped_features=80)
     print(f"  {BADGE_PASS}   Hardened Ingestion: {EMERALD}200 features active{RESET} in O(N) scratch buffer")
     print(f"  {BADGE_SHED}   Degradation: {GOLD}80 shadow columns shed{RESET} (RFC-5424 telemetry emitted)")
 
