@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Seed comprehensive incidents into Turso libSQL database and export static JSON snapshots.
-Populates incident history records and exports static JSON snapshots.
+Seed authentic, multi-tier systems incidents into Turso libSQL database and export static JSON snapshots.
+Populates realistic distributed systems incident history records across CDN, proxy, pipeline, and storage tiers.
 """
 
 from __future__ import annotations
@@ -17,40 +17,14 @@ from scripts.turso_client import execute_turso_queries, export_snapshots_to_disk
 
 INCIDENTS_SEED = [
     {
-        "id": "inc-2026-09-24-bgp",
-        "title": "Customers using BYOIP can have issues updating their BGP prefixes, including advertising or withdrawing prefixes.",
-        "service": "svc-ip",
-        "service_group": "group-proxy",
-        "severity": "minor",
-        "status": "resolved",
-        "impact": "Minor Impact",
-        "root_cause": "BGP route reflection update latency across edge prefixes",
-        "started_at": "2026-09-24T10:22:34.763Z",
-        "resolved_at": "2026-09-24T10:25:52.106Z",
-        "updates": [
-            {
-                "time": "2026-09-24T10:25:52.106Z",
-                "status": "resolved",
-                "title": "Resolved",
-                "message": "This incident has now been resolved - Customers with BYOIP addresses were unable to update their BGP prefixes, including advertising or withdrawing prefixes. Customers making changes to their address maps may also have experienced delays."
-            },
-            {
-                "time": "2026-09-24T10:22:34.862Z",
-                "status": "investigating",
-                "title": "Investigating",
-                "message": "We are currently investigating an issue where customers with BYOIP addresses will be unable to update their BGP prefixes, including advertising or withdrawing prefixes."
-            }
-        ]
-    },
-    {
         "id": "inc-2026-09-24-drift",
         "title": "L7 Edge Proxy Ingestion Panic (TryFromSliceError)",
         "service": "svc-fl2",
         "service_group": "group-proxy",
         "severity": "critical",
         "status": "resolved",
-        "impact": "100% 502 Bad Gateway across edge PoPs",
-        "root_cause": "system.columns multi-shard reflection expanded dynamic catalog to 280 features",
+        "impact": "100% 502 Bad Gateway across edge PoPs during dynamic configuration reload",
+        "root_cause": "system.columns multi-shard reflection expanded dynamic catalog to 280 features, breaching stack buffer [Feature; 200]",
         "started_at": "2026-09-24T11:28:06.041Z",
         "resolved_at": "2026-09-24T11:42:08.960Z",
         "updates": [
@@ -81,14 +55,46 @@ INCIDENTS_SEED = [
         ]
     },
     {
-        "id": "inc-2026-09-24-auth",
-        "title": "Intermittent authentication errors for API and R2",
-        "service": "svc-api",
-        "service_group": "group-cdn",
+        "id": "inc-2026-09-24-bgp",
+        "title": "BGP Route Reflection Latency on Bring Your Own IP (BYOIP) Prefix Updates",
+        "service": "svc-ip",
+        "service_group": "group-proxy",
         "severity": "minor",
         "status": "resolved",
-        "impact": "Minor error rate for scoped credential validation",
-        "root_cause": "Key validation cache rebalancing latency on edge auth tier",
+        "impact": "15-minute propagation delay for customer IP prefix advertisements and withdrawals",
+        "root_cause": "BGP route reflector peer group synchronization queue lag across core transit edge routers",
+        "started_at": "2026-09-24T10:22:34.763Z",
+        "resolved_at": "2026-09-24T10:38:52.106Z",
+        "updates": [
+            {
+                "time": "2026-09-24T10:38:52.106Z",
+                "status": "resolved",
+                "title": "Resolved",
+                "message": "Route reflector inbound queues cleared across Tier 1 transit peers. Prefix update convergence latency returned to normal parameters (< 30s)."
+            },
+            {
+                "time": "2026-09-24T10:30:15.000Z",
+                "status": "identified",
+                "title": "Identified",
+                "message": "Identified lock contention on internal ExaBGP rib-in worker threads during concurrent prefix map reloads."
+            },
+            {
+                "time": "2026-09-24T10:22:34.763Z",
+                "status": "investigating",
+                "title": "Investigating",
+                "message": "Investigating elevated propagation delay for customers modifying BYOIP prefix announcements and withdrawal policies."
+            }
+        ]
+    },
+    {
+        "id": "inc-2026-09-23-auth",
+        "title": "Intermittent Ed25519 Token Verification Latency on Edge Authentication Tier",
+        "service": "svc-api",
+        "service_group": "group-proxy",
+        "severity": "minor",
+        "status": "resolved",
+        "impact": "Sub-0.4% transient 401/403 validation timeouts on scoped API credentials",
+        "root_cause": "Key validation cache rebalancing lease contention across regional edge auth workers",
         "started_at": "2026-09-23T20:59:35.579Z",
         "resolved_at": "2026-09-23T22:44:32.859Z",
         "updates": [
@@ -96,63 +102,63 @@ INCIDENTS_SEED = [
                 "time": "2026-09-23T22:44:32.859Z",
                 "status": "resolved",
                 "title": "Resolved",
-                "message": "Cache configuration redeployed and distributed to all regional edge auth caches. Error rates returned to baseline."
+                "message": "Cache lease refresh timeout adjusted and cryptographic public key store distributed to all regional edge nodes. Validation error rate returned to 0.00%."
             },
             {
                 "time": "2026-09-23T21:59:10.000Z",
                 "status": "identified",
                 "title": "Identified",
-                "message": "Root cause identified in regional edge auth cache tier lease invalidation loop."
+                "message": "Isolated lease invalidation lock storm in regional edge auth cache tier during automated key rotation."
             },
             {
                 "time": "2026-09-23T20:59:35.579Z",
                 "status": "investigating",
                 "title": "Investigating",
-                "message": "Investigating elevated authentication failures and scoped token validation timeouts on API and R2 gateway."
+                "message": "Investigating elevated validation latency and token timeouts on edge API and R2 authorization gateway."
             }
         ]
     },
     {
-        "id": "inc-2026-09-23-cache",
-        "title": "Elevated Errors with any / all in http_response_cache_settings",
+        "id": "inc-2026-09-23-cache-stampede",
+        "title": "Request Coalescing Mutex Contention under High-Velocity Cache Purge",
         "service": "svc-cdn",
         "service_group": "group-cdn",
         "severity": "minor",
         "status": "resolved",
-        "impact": "Edge rule evaluation syntax errors on combined predicate",
-        "root_cause": "Parser regex boundary condition on nested array expressions in cache rule compiler",
+        "impact": "Transient 504 Gateway Timeouts and 3.2x origin request amplification on un-coalesced hot assets",
+        "root_cause": "Singleflight request collapsing hash table lock contention during global wildcard purge, causing temporary origin pass-through",
         "started_at": "2026-09-23T15:54:28.000Z",
-        "resolved_at": "2026-09-23T18:08:18.013Z",
+        "resolved_at": "2026-09-23T17:18:18.013Z",
         "updates": [
             {
-                "time": "2026-09-23T18:08:18.013Z",
+                "time": "2026-09-23T17:18:18.013Z",
                 "status": "resolved",
                 "title": "Resolved",
-                "message": "Rule compiler syntax patch distributed to all colo PoPs. Cache evaluation syntax errors resolved."
+                "message": "Fine-grained striped lock partitioning applied to request collapsing hash table. Singleflight coalescing restored across all edge ingress clusters."
             },
             {
                 "time": "2026-09-23T16:45:00.000Z",
                 "status": "identified",
                 "title": "Identified",
-                "message": "Isolated syntax tokenizer edge case triggered by combined any/all predicates in http_response_cache_settings."
+                "message": "Customer wildcard purge API burst triggered lock convoy on global in-flight request deduplication mutex, allowing 2,400 concurrent misses to bypass shield."
             },
             {
                 "time": "2026-09-23T15:54:28.000Z",
                 "status": "investigating",
                 "title": "Investigating",
-                "message": "Monitoring increased customer rule evaluation exceptions when modifying complex cache settings."
+                "message": "Observing transient origin connection spikes and 504 timeouts following sudden cache invalidation on dynamic news domains."
             }
         ]
     },
     {
         "id": "inc-2026-09-22-do",
-        "title": "Increased Errors for Durable Objects",
+        "title": "Distributed Lock Lease Expiry Contention for Durable Objects in US-EAST",
         "service": "svc-kv",
         "service_group": "group-storage",
         "severity": "major",
         "status": "resolved",
-        "impact": "Object replication stalls on multi-region sync",
-        "root_cause": "Distributed lock lease expiry under high network concurrency",
+        "impact": "Object replication stalls and transient 503 retry storms on cross-region synchronized KV writes",
+        "root_cause": "Raft consensus heartbeat jitter over transatlantic interconnect causing lock lease flapping",
         "started_at": "2026-09-22T11:14:32.859Z",
         "resolved_at": "2026-09-22T13:14:32.859Z",
         "updates": [
@@ -160,31 +166,31 @@ INCIDENTS_SEED = [
                 "time": "2026-09-22T13:14:32.859Z",
                 "status": "resolved",
                 "title": "Resolved",
-                "message": "Lock contention resolved with revised lease expiry backoff parameters. Replication queues cleared."
+                "message": "Consensus heartbeat timeout window broadened from 150ms to 450ms across inter-region WAN links. Durable Object replication queues drained to zero."
             },
             {
                 "time": "2026-09-22T12:05:00.000Z",
                 "status": "identified",
                 "title": "Identified",
-                "message": "Distributed lock lease expiry timer conflict observed under high concurrent synchronization in US-EAST."
+                "message": "WAN packet loss burst between Ashburn (IAD) and London (LHR) induced repeated Raft leader re-elections for partitioned storage shards."
             },
             {
                 "time": "2026-09-22T11:14:32.859Z",
                 "status": "investigating",
                 "title": "Investigating",
-                "message": "Investigating replica lock contention and synchronization delays in US-EAST colo clusters."
+                "message": "Investigating replication delays and distributed lock acquisition failures for multi-region stateful edge worker instances."
             }
         ]
     },
     {
         "id": "inc-2026-09-21-r2-au",
-        "title": "Elevated number of R2 503 errors in Australian Eastern Coast region",
+        "title": "Elevated Edge Gateway 503 Errors in Australian Eastern Coast Region",
         "service": "svc-fl2",
         "service_group": "group-proxy",
         "severity": "minor",
         "status": "resolved",
-        "impact": "Temporary 503 errors on object storage fetches in Sydney and Melbourne",
-        "root_cause": "Subsea fiber cable maintenance caused upstream gateway congestion",
+        "impact": "Transient 503 errors on object storage fetches in Sydney and Melbourne POPs",
+        "root_cause": "Subsea fiber cable maintenance caused upstream gateway congestion and route flapping on Sydney (SYD) interconnects",
         "started_at": "2026-09-21T09:12:00.000Z",
         "resolved_at": "2026-09-21T11:25:00.000Z",
         "updates": [
@@ -192,31 +198,31 @@ INCIDENTS_SEED = [
                 "time": "2026-09-21T11:25:00.000Z",
                 "status": "resolved",
                 "title": "Resolved",
-                "message": "Anycast traffic rerouted to redundant oceanic links. 503 error rates dropped to baseline 0%."
+                "message": "Anycast BGP weightings re-balanced to route traffic over redundant trans-Tasman routes. Gateway 503 error rates dropped back to zero."
             },
             {
                 "time": "2026-09-21T10:02:00.000Z",
                 "status": "identified",
                 "title": "Identified",
-                "message": "Identified upstream transit latency spikes on Sydney (SYD) edge interconnects."
+                "message": "Transit carrier maintenance on Southern Cross Cable triggered packet drop bursts and TCP connection resets on Sydney upstream interfaces."
             },
             {
                 "time": "2026-09-21T09:12:00.000Z",
                 "status": "investigating",
                 "title": "Investigating",
-                "message": "Investigating transient 503 service unavailable errors affecting R2 object downloads in Australia."
+                "message": "Investigating transient 503 service unavailable errors affecting R2 object downloads in Australia and New Zealand."
             }
         ]
     },
     {
         "id": "inc-2026-09-20-dns",
-        "title": "Issues with 1.1.1.1 for Families",
-        "service": "svc-dns",
+        "title": "BGP Prefix Synchronization Lag on 1.1.1.1 Resolver Policy Blocklists",
+        "service": "svc-hints",
         "service_group": "group-proxy",
         "severity": "minor",
         "status": "resolved",
-        "impact": "Malware and adult domain filtering rule propagation delays",
-        "root_cause": "BGP prefix synchronization lag on filtering blocklists",
+        "impact": "Intermittent policy evaluation bypass for malware and threat category filtering",
+        "root_cause": "Blocklist distribution daemon socket timeout on secondary Anycast distribution rings",
         "started_at": "2026-09-20T07:15:00.000Z",
         "resolved_at": "2026-09-20T08:26:00.000Z",
         "updates": [
@@ -242,13 +248,13 @@ INCIDENTS_SEED = [
     },
     {
         "id": "inc-2026-09-18-shards",
-        "title": "ClickHouse Replica Desynchronization on Analytical Shard 2",
+        "title": "ClickHouse Replica Desynchronization on Analytical Shard 2 (events_r1)",
         "service": "svc-shards",
         "service_group": "group-storage",
         "severity": "minor",
         "status": "resolved",
-        "impact": "Delayed real-time feature extraction aggregation queries",
-        "root_cause": "Zookeeper metadata sync timeout during cluster node rotation",
+        "impact": "Delayed real-time feature extraction aggregation queries and mutation log queue lag",
+        "root_cause": "Keeper metadata lease timeout during scheduled cluster node rotation in Frankfurt",
         "started_at": "2026-09-18T14:20:00.000Z",
         "resolved_at": "2026-09-18T15:45:00.000Z",
         "updates": [
@@ -273,14 +279,46 @@ INCIDENTS_SEED = [
         ]
     },
     {
+        "id": "inc-2026-09-16-img",
+        "title": "WASM Image Transcoding Worker Memory Throttling on 8K AVIF Conversions",
+        "service": "svc-image-resizing",
+        "service_group": "group-cdn",
+        "severity": "minor",
+        "status": "resolved",
+        "impact": "Transient HTTP 413 Payload Too Large and image transformation fallbacks to unoptimized origin assets",
+        "root_cause": "Linear memory growth in libvips WebAssembly sandbox under concurrent ultra-high-resolution transcoding",
+        "started_at": "2026-09-16T12:04:00.000Z",
+        "resolved_at": "2026-09-16T13:22:00.000Z",
+        "updates": [
+            {
+                "time": "2026-09-16T13:22:00.000Z",
+                "status": "resolved",
+                "title": "Resolved",
+                "message": "Sandbox memory limits expanded to 256MB per isolate with cooperative yielding on resolutions exceeding 4K. Transcoding latency normalized."
+            },
+            {
+                "time": "2026-09-16T12:40:00.000Z",
+                "status": "identified",
+                "title": "Identified",
+                "message": "Concurrent generation of animated AVIF thumbnails exhausted the default 64MB WASM heap limit on regional edge workers."
+            },
+            {
+                "time": "2026-09-16T12:04:00.000Z",
+                "status": "investigating",
+                "title": "Investigating",
+                "message": "Investigating sporadic 413 errors and unresized image pass-through for high-resolution e-commerce catalog media."
+            }
+        ]
+    },
+    {
         "id": "inc-2026-09-15-ja4",
-        "title": "Cryptographic Fingerprint Evaluator Rate Limit Throttling",
+        "title": "Cryptographic Fingerprint Evaluator Rate Limit Throttling on TLS GREASE",
         "service": "svc-ja4",
         "service_group": "group-proxy",
         "severity": "minor",
         "status": "resolved",
-        "impact": "Brief fallback to heuristic fingerprinting for TLS client handshakes",
-        "root_cause": "High volume of anomalous TLS ClientHello extensions exceeding cache buffer",
+        "impact": "Brief fallback to heuristic fingerprinting for TLS client handshakes in Tokyo PoP",
+        "root_cause": "Novel botnet TLS ClientHello cipher extension stuffing exceeding in-memory evaluation cache buffer",
         "started_at": "2026-09-15T18:10:00.000Z",
         "resolved_at": "2026-09-15T19:05:00.000Z",
         "updates": [
@@ -306,12 +344,12 @@ INCIDENTS_SEED = [
     },
     {
         "id": "inc-2026-09-12-entropy",
-        "title": "Header Entropy Scorer Parser Edge Cases on RFC 9110 Headers",
+        "title": "Header Entropy Scorer Parser Edge Cases on Non-ASCII RFC 9110 Headers",
         "service": "svc-entropy",
         "service_group": "group-proxy",
         "severity": "minor",
         "status": "resolved",
-        "impact": "Benign requests flagged with elevated bot confidence score",
+        "impact": "False-positive bot scoring on legitimate international localized user-agent headers",
         "root_cause": "Unicode normalization edge case in Shannon entropy character distribution window",
         "started_at": "2026-09-12T10:00:00.000Z",
         "resolved_at": "2026-09-12T11:18:00.000Z",
@@ -333,6 +371,422 @@ INCIDENTS_SEED = [
                 "status": "investigating",
                 "title": "Investigating",
                 "message": "Investigating elevated challenge rates on international non-ASCII user agent headers."
+            }
+        ]
+    },
+    {
+        "id": "inc-2026-09-09-connector",
+        "title": "Cloud Connector IPsec Tunnel MTU Fragmentation on Direct Connect Interconnects",
+        "service": "svc-connector",
+        "service_group": "group-cdn",
+        "severity": "minor",
+        "status": "resolved",
+        "impact": "Sub-packet fragmentation overhead causing 12ms egress latency inflation for enterprise origin tunnels",
+        "root_cause": "Path MTU Discovery (PMTUD) blackholing due to upstream carrier ICMP Fragmentation Needed packet drops",
+        "started_at": "2026-09-09T08:30:00.000Z",
+        "resolved_at": "2026-09-09T10:14:00.000Z",
+        "updates": [
+            {
+                "time": "2026-09-09T10:14:00.000Z",
+                "status": "resolved",
+                "title": "Resolved",
+                "message": "TCP MSS clamping enforced at 1380 bytes across Cloud Connector tunnel endpoints. Fragmentation eliminated and round-trip latency restored to 2.4ms baseline."
+            },
+            {
+                "time": "2026-09-09T09:15:00.000Z",
+                "status": "identified",
+                "title": "Identified",
+                "message": "Transit firewall drop of ICMP Type 3 Code 4 messages prevented clients from adjusting packet sizes below the 1500 byte interface MTU."
+            },
+            {
+                "time": "2026-09-09T08:30:00.000Z",
+                "status": "investigating",
+                "title": "Investigating",
+                "message": "Investigating egress throughput drops and packet retransmissions on hybrid cloud interconnect tunnels in Ashburn."
+            }
+        ]
+    },
+    {
+        "id": "inc-2026-09-04-reserve",
+        "title": "Cache Reserve Cold Tier S3 Read Timeout Spikes in EU-Central",
+        "service": "svc-reserve",
+        "service_group": "group-cdn",
+        "severity": "minor",
+        "status": "resolved",
+        "impact": "Cold asset retrieval latency jumped from 60ms to 420ms for non-L1 cache misses",
+        "root_cause": "Elevated read latency on persistent object storage tier during Ceph OSD storage pool scrub and rebalance",
+        "started_at": "2026-09-04T15:20:00.000Z",
+        "resolved_at": "2026-09-04T17:05:00.000Z",
+        "updates": [
+            {
+                "time": "2026-09-04T17:05:00.000Z",
+                "status": "resolved",
+                "title": "Resolved",
+                "message": "Storage pool scrubbing rate limits lowered during peak EU traffic hours. Cold cache retrieval latency returned to 55ms baseline."
+            },
+            {
+                "time": "2026-09-04T16:10:00.000Z",
+                "status": "identified",
+                "title": "Identified",
+                "message": "Automated disk repair scrub cycle saturated SAS drive controller queue depths on persistent storage nodes in Frankfurt."
+            },
+            {
+                "time": "2026-09-04T15:20:00.000Z",
+                "status": "investigating",
+                "title": "Investigating",
+                "message": "Monitoring elevated origin fallback rates caused by slow reads from persistent Cache Reserve storage in Frankfurt."
+            }
+        ]
+    },
+    {
+        "id": "inc-2026-09-02-cache-range",
+        "title": "Byte-Range Splicing Desynchronization on Multipart Video Segments (RFC 7233)",
+        "service": "svc-cdn",
+        "service_group": "group-cdn",
+        "severity": "minor",
+        "status": "resolved",
+        "impact": "Corrupted video playback chunks and checksum mismatches on partial content downloads in London and Paris POPs",
+        "root_cause": "Edge cache slice filter stripped Content-Range headers on 206 responses, caching partial byte buffers under general URI keys",
+        "started_at": "2026-09-02T13:10:00.000Z",
+        "resolved_at": "2026-09-02T15:28:00.000Z",
+        "updates": [
+            {
+                "time": "2026-09-02T15:28:00.000Z",
+                "status": "resolved",
+                "title": "Resolved",
+                "message": "Range filter patched to validate RFC 7233 byte boundaries before buffer ingestion. Poisoned fragments purged globally and video playback validated."
+            },
+            {
+                "time": "2026-09-02T14:15:00.000Z",
+                "status": "identified",
+                "title": "Identified",
+                "message": "A regression in the HTTP/2 chunk stitcher treated partial 206 responses as complete 200 OK responses whenever Range was requested with bytes=0-1024."
+            },
+            {
+                "time": "2026-09-02T13:10:00.000Z",
+                "status": "investigating",
+                "title": "Investigating",
+                "message": "Investigating reports of video streams freezing after first segment and hash check failures on multi-megabyte binary downloads."
+            }
+        ]
+    },
+    {
+        "id": "inc-2026-08-31-purge",
+        "title": "Cache-Tag Invalidation Pipeline Backpressure on Secondary Anycast POPs",
+        "service": "svc-purge",
+        "service_group": "group-cdn",
+        "severity": "minor",
+        "status": "resolved",
+        "impact": "Regional 8 to 14 minute stale cache lifetime on explicit customer tag invalidation calls",
+        "root_cause": "Kafka pub/sub consumer group partition rebalance delayed cache-tag purge message propagation across APAC edge nodes",
+        "started_at": "2026-08-31T09:40:00.000Z",
+        "resolved_at": "2026-08-31T11:15:00.000Z",
+        "updates": [
+            {
+                "time": "2026-08-31T11:15:00.000Z",
+                "status": "resolved",
+                "title": "Resolved",
+                "message": "Consumer group coordinator failover completed and backlog of 180,000 tag invalidations processed. Purge propagation time back to < 150ms."
+            },
+            {
+                "time": "2026-08-31T10:20:00.000Z",
+                "status": "identified",
+                "title": "Identified",
+                "message": "Network partition between Singapore message broker cluster and regional edge POPs triggered repeated consumer group rebalance loops."
+            },
+            {
+                "time": "2026-08-31T09:40:00.000Z",
+                "status": "investigating",
+                "title": "Investigating",
+                "message": "Investigating delays in cache purge propagation for API calls using Cache-Tag and Purge-All endpoints in Asia-Pacific."
+            }
+        ]
+    },
+    {
+        "id": "inc-2026-08-25-ch",
+        "title": "ClickHouse Part Mutation Queue Congestion on Sharded Analytical Cluster",
+        "service": "svc-ch-cluster",
+        "service_group": "group-storage",
+        "severity": "minor",
+        "status": "resolved",
+        "impact": "Analytical query execution time elevated from 120ms to 1,450ms for security feature aggregation",
+        "root_cause": "High disk I/O wait during background merge operations of high-cardinality telemetry partitions",
+        "started_at": "2026-08-25T16:15:00.000Z",
+        "resolved_at": "2026-08-25T18:02:00.000Z",
+        "updates": [
+            {
+                "time": "2026-08-25T18:02:00.000Z",
+                "status": "resolved",
+                "title": "Resolved",
+                "message": "MergeTree max_bytes_to_merge_at_max_space_in_pools parameter tuned and mutation tasks drained. Query latency returned to 110ms baseline."
+            },
+            {
+                "time": "2026-08-25T17:10:00.000Z",
+                "status": "identified",
+                "title": "Identified",
+                "message": "Continuous ingestion of 120k RPS security telemetry triggered concurrent mutations across 48 shards simultaneously, saturating NVMe IOPS."
+            },
+            {
+                "time": "2026-08-25T16:15:00.000Z",
+                "status": "investigating",
+                "title": "Investigating",
+                "message": "Investigating slow analytical queries on ClickHouse bot_signals dataset and delayed dashboard metric refreshes."
+            }
+        ]
+    },
+    {
+        "id": "inc-2026-08-20-cache-vary",
+        "title": "LRU Slab Allocator Eviction Thrashing via Unbounded Vary Header Permutations",
+        "service": "svc-cdn",
+        "service_group": "group-cdn",
+        "severity": "minor",
+        "status": "resolved",
+        "impact": "Cache hit ratio dropped from 96.4% to 28.1% on affected customer domains, shifting heavy load to origin",
+        "root_cause": "Origin returned Vary: User-Agent, Cookie, X-Device-Id causing cache key cardinality explosion and rapid slab eviction",
+        "started_at": "2026-08-20T11:05:00.000Z",
+        "resolved_at": "2026-08-20T13:40:00.000Z",
+        "updates": [
+            {
+                "time": "2026-08-20T13:40:00.000Z",
+                "status": "resolved",
+                "title": "Resolved",
+                "message": "Edge cache key normalizer rule deployed to sanitize unbounded Vary dimensions. Cache hit ratio recovered to 96.8%."
+            },
+            {
+                "time": "2026-08-20T12:15:00.000Z",
+                "status": "identified",
+                "title": "Identified",
+                "message": "Origin application began emitting Vary on randomized session cookie values, allocating 450,000 distinct cache items per hour for a single URL."
+            },
+            {
+                "time": "2026-08-20T11:05:00.000Z",
+                "status": "investigating",
+                "title": "Investigating",
+                "message": "Investigating sudden drop in edge cache hit ratio and elevated upstream origin bandwidth on tier-1 e-commerce accounts."
+            }
+        ]
+    },
+    {
+        "id": "inc-2026-08-10-payload",
+        "title": "Atomic Configuration File Replacement Stalls on Read-Only Staging Mount",
+        "service": "svc-payload",
+        "service_group": "group-pipeline",
+        "severity": "minor",
+        "status": "resolved",
+        "impact": "Delayed catalog synchronization; pipeline fell back to in-memory cached payload descriptors",
+        "root_cause": "Rename operation (renameat2) failed with EROFS during automated features.json atomic swap on staging nodes",
+        "started_at": "2026-08-10T14:12:00.000Z",
+        "resolved_at": "2026-08-10T15:20:00.000Z",
+        "updates": [
+            {
+                "time": "2026-08-10T15:20:00.000Z",
+                "status": "resolved",
+                "title": "Resolved",
+                "message": "Staging filesystem remounted read-write and atomic swap fallback logic validated. Catalog updates propagating within nominal 5s SLA."
+            },
+            {
+                "time": "2026-08-10T14:45:00.000Z",
+                "status": "identified",
+                "title": "Identified",
+                "message": "Underlying EBS volume IO error forced Linux kernel to remount staging disk as read-only, preventing temporary file replacement."
+            },
+            {
+                "time": "2026-08-10T14:12:00.000Z",
+                "status": "investigating",
+                "title": "Investigating",
+                "message": "Investigating catalog synchronization daemon warnings during dynamic features.json export on staging test nodes."
+            }
+        ]
+    },
+    {
+        "id": "inc-2026-08-07-fl2-io",
+        "title": "TCP Worker epoll Event Loop Stalls during NVMe Storage Page Faults",
+        "service": "svc-fl2",
+        "service_group": "group-proxy",
+        "severity": "minor",
+        "status": "resolved",
+        "impact": "Transient p99 latency spikes (up to 320ms) across multiplexed client connections on affected proxy threads",
+        "root_cause": "Synchronous kernel pread(2) on uncached NVMe disk blocks blocked the non-blocking worker thread reactor",
+        "started_at": "2026-08-07T08:15:00.000Z",
+        "resolved_at": "2026-08-07T10:05:00.000Z",
+        "updates": [
+            {
+                "time": "2026-08-07T10:05:00.000Z",
+                "status": "resolved",
+                "title": "Resolved",
+                "message": "Disk I/O delegated to dedicated asynchronous io_uring thread pool. Reactor event loops unblocked; p99 latency restored to 1.18ms."
+            },
+            {
+                "time": "2026-08-07T09:05:00.000Z",
+                "status": "identified",
+                "title": "Identified",
+                "message": "Heavy concurrent cold cache reads forced Linux page cache stalls on NVMe flash devices with deep command queues."
+            },
+            {
+                "time": "2026-08-07T08:15:00.000Z",
+                "status": "investigating",
+                "title": "Investigating",
+                "message": "Investigating periodic 200ms latency jitters affecting proxy worker threads in London and Amsterdam POPs."
+            }
+        ]
+    },
+    {
+        "id": "inc-2026-08-05-tiered",
+        "title": "Origin Shield Socket Descriptor Limit Saturation in Frankfurt POP",
+        "service": "svc-tiered-cache",
+        "service_group": "group-cdn",
+        "severity": "minor",
+        "status": "resolved",
+        "impact": "Automated shield bypass failover engaged; edge POPs fetched directly from customer origins with elevated egress latency",
+        "root_cause": "Tiered cache upper-tier shield node exceeded Linux RLIMIT_NOFILE (65,536 fds) under origin keep-alive surge",
+        "started_at": "2026-08-05T13:20:00.000Z",
+        "resolved_at": "2026-08-05T15:10:00.000Z",
+        "updates": [
+            {
+                "time": "2026-08-05T15:10:00.000Z",
+                "status": "resolved",
+                "title": "Resolved",
+                "message": "RLIMIT_NOFILE raised to 1,048,576 and origin idle connection keep-alive timeout lowered to 30s. Shield cluster resumed full routing."
+            },
+            {
+                "time": "2026-08-05T14:05:00.000Z",
+                "status": "identified",
+                "title": "Identified",
+                "message": "A burst of 80,000 idle keep-alive connections from tier-1 edge POPs exhausted available socket handles on Frankfurt shield proxies."
+            },
+            {
+                "time": "2026-08-05T13:20:00.000Z",
+                "status": "investigating",
+                "title": "Investigating",
+                "message": "Investigating connection refusals and automatic origin shield bypass alerts on European tiered cache clusters."
+            }
+        ]
+    },
+    {
+        "id": "inc-2026-07-26-ip",
+        "title": "BGP Community Tag Stripping on Latin America Peering Exchange",
+        "service": "svc-ip",
+        "service_group": "group-proxy",
+        "severity": "minor",
+        "status": "resolved",
+        "impact": "Localized latency increase of 45ms for South American traffic due to sub-optimal transit routing",
+        "root_cause": "Upstream tier-1 transit provider stripped NO_EXPORT BGP community tags, causing route oscillation in Sao Paulo",
+        "started_at": "2026-07-26T17:40:00.000Z",
+        "resolved_at": "2026-07-26T19:15:00.000Z",
+        "updates": [
+            {
+                "time": "2026-07-26T19:15:00.000Z",
+                "status": "resolved",
+                "title": "Resolved",
+                "message": "Upstream transit provider re-applied community filter rules. BGP path metrics converged on lowest-latency local paths."
+            },
+            {
+                "time": "2026-07-26T18:25:00.000Z",
+                "status": "identified",
+                "title": "Identified",
+                "message": "Carrier router reconfiguration dropped RFC 1997 standard community tags during session reset at IX.br."
+            },
+            {
+                "time": "2026-07-26T17:40:00.000Z",
+                "status": "investigating",
+                "title": "Investigating",
+                "message": "Investigating suboptimal routing and latency inflation for traffic entering the network via Sao Paulo and Buenos Aires."
+            }
+        ]
+    },
+    {
+        "id": "inc-2026-07-24-cache-h2",
+        "title": "HTTP/2 Connection Reuse Stream Multiplexing Race on Upstream Origins",
+        "service": "svc-cdn",
+        "service_group": "group-cdn",
+        "severity": "minor",
+        "status": "resolved",
+        "impact": "Transient connection resets (RST_STREAM) affecting 0.08% of origin revalidation fetches",
+        "root_cause": "Race condition in proxy origin pool when handling concurrent GOAWAY frames with active in-flight cache subrequests",
+        "started_at": "2026-07-24T10:30:00.000Z",
+        "resolved_at": "2026-07-24T12:12:00.000Z",
+        "updates": [
+            {
+                "time": "2026-07-24T12:12:00.000Z",
+                "status": "resolved",
+                "title": "Resolved",
+                "message": "Origin connection pool state machine patched to handle GOAWAY graceful stream migration without dropping queued subrequests."
+            },
+            {
+                "time": "2026-07-24T11:15:00.000Z",
+                "status": "identified",
+                "title": "Identified",
+                "message": "When an origin dispatched a GOAWAY frame during high connection reuse, newly initiated cache revalidation streams were aborted prematurely."
+            },
+            {
+                "time": "2026-07-24T10:30:00.000Z",
+                "status": "investigating",
+                "title": "Investigating",
+                "message": "Investigating transient 502/504 errors on long-lived HTTP/2 upstream connections to customer origins."
+            }
+        ]
+    },
+    {
+        "id": "inc-2026-07-14-reserve",
+        "title": "Cache Reserve Deduplication Index Rebuild Delay on Western US Cluster",
+        "service": "svc-reserve",
+        "service_group": "group-cdn",
+        "severity": "minor",
+        "status": "resolved",
+        "impact": "180ms p95 latency elevation for cold cache reserve object fetches in US-West",
+        "root_cause": "High write queue depth during RocksDB block-level SSTable compaction in San Jose datacenter",
+        "started_at": "2026-07-14T06:15:00.000Z",
+        "resolved_at": "2026-07-14T08:30:00.000Z",
+        "updates": [
+            {
+                "time": "2026-07-14T08:30:00.000Z",
+                "status": "resolved",
+                "title": "Resolved",
+                "message": "Compaction concurrency throttled and memory cache buffers increased. Cache Reserve response latency returned to normal 45ms SLA."
+            },
+            {
+                "time": "2026-07-14T07:15:00.000Z",
+                "status": "identified",
+                "title": "Identified",
+                "message": "Heavy write-back batch from weekend cold storage sync triggered level-6 LSM-tree background compaction, competing for NVMe bandwidth."
+            },
+            {
+                "time": "2026-07-14T06:15:00.000Z",
+                "status": "investigating",
+                "title": "Investigating",
+                "message": "Investigating elevated read latency for Cache Reserve requests routed through San Jose (SJC) and Los Angeles (LAX)."
+            }
+        ]
+    },
+    {
+        "id": "inc-2026-07-11-cache-swr",
+        "title": "Async Worker Task Accumulation on Stale-While-Revalidate Storms",
+        "service": "svc-cdn",
+        "service_group": "group-cdn",
+        "severity": "minor",
+        "status": "resolved",
+        "impact": "Tokio task pool memory pressure and elevated edge CPU usage during degraded origin recovery",
+        "root_cause": "Missing deduplication lock on background revalidation tasks when origin latency exceeded 5 seconds",
+        "started_at": "2026-07-11T14:00:00.000Z",
+        "resolved_at": "2026-07-11T16:15:00.000Z",
+        "updates": [
+            {
+                "time": "2026-07-11T16:15:00.000Z",
+                "status": "resolved",
+                "title": "Resolved",
+                "message": "Per-URI atomic in-flight guard added for stale-while-revalidate spawns. Max background task concurrency capped at 1 per cache key."
+            },
+            {
+                "time": "2026-07-11T15:05:00.000Z",
+                "status": "identified",
+                "title": "Identified",
+                "message": "When a major origin slowed to 8s response times, 12,000 identical background revalidation tasks were launched for the same stale resource."
+            },
+            {
+                "time": "2026-07-11T14:00:00.000Z",
+                "status": "investigating",
+                "title": "Investigating",
+                "message": "Investigating elevated memory consumption and CPU thread usage across proxy worker processes during slow origin recovery."
             }
         ]
     }
