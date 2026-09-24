@@ -160,77 +160,83 @@ const ACTIVE_MAINTENANCE = [
 const REGIONAL_LOCATIONS = [
   {
     region: "Asia",
+    center: [22.0, 95.0],
     totalCount: 99,
     pops: [
-      { city: "Ahmedabad", country: "India", code: "AMD", status: "operational", tag: "Operational +" },
-      { city: "Almaty", country: "Kazakhstan", code: "ALA", status: "operational", tag: "Operational +" },
-      { city: "Bangalore", country: "India", code: "BLR", status: "rerouted", tag: "Partially Re-routed +" },
-      { city: "Bangkok", country: "Thailand", code: "BKK", status: "operational", tag: "Operational +" },
-      { city: "Bandar Seri Begawan", country: "Brunei", code: "BWN", status: "operational", tag: "Operational +" },
-      { city: "Cebu", country: "Philippines", code: "CEB", status: "operational", tag: "Operational +" },
-      { city: "Chandigarh", country: "India", code: "IXC", status: "operational", tag: "Operational +" },
-      { city: "Changde", country: "China", code: "CGD", status: "operational", tag: "Operational +" },
-      { city: "Chennai", country: "India", code: "MAA", status: "operational", tag: "Operational +" },
-      { city: "Chittagong", country: "Bangladesh", code: "CGP", status: "operational", tag: "Operational +" },
-      { city: "Colombo", country: "Sri Lanka", code: "CMB", status: "operational", tag: "Operational +" },
-      { city: "Dhaka", country: "Bangladesh", code: "DAC", status: "rerouted", tag: "Partially Re-routed +" },
-      { city: "Foshan", country: "China", code: "FUO", status: "operational", tag: "Operational +" },
-      { city: "Tokyo", country: "Japan", code: "NRT", status: "operational", tag: "Operational +" },
-      { city: "Singapore", country: "Singapore", code: "SIN", status: "operational", tag: "Operational +" },
-      { city: "Seoul", country: "South Korea", code: "ICN", status: "operational", tag: "Operational +" }
+      { city: "Ahmedabad", country: "India", code: "AMD", lat: 23.0225, lng: 72.5714, status: "operational", tag: "Operational +" },
+      { city: "Almaty", country: "Kazakhstan", code: "ALA", lat: 43.2220, lng: 76.8512, status: "operational", tag: "Operational +" },
+      { city: "Bangalore", country: "India", code: "BLR", lat: 12.9716, lng: 77.5946, status: "rerouted", tag: "Partially Re-routed +" },
+      { city: "Bangkok", country: "Thailand", code: "BKK", lat: 13.7563, lng: 100.5018, status: "operational", tag: "Operational +" },
+      { city: "Bandar Seri Begawan", country: "Brunei", code: "BWN", lat: 4.9031, lng: 114.9398, status: "operational", tag: "Operational +" },
+      { city: "Cebu", country: "Philippines", code: "CEB", lat: 10.3157, lng: 123.8854, status: "operational", tag: "Operational +" },
+      { city: "Chandigarh", country: "India", code: "IXC", lat: 30.7333, lng: 76.7794, status: "operational", tag: "Operational +" },
+      { city: "Changde", country: "China", code: "CGD", lat: 29.0402, lng: 111.6974, status: "operational", tag: "Operational +" },
+      { city: "Chennai", country: "India", code: "MAA", lat: 13.0827, lng: 80.2707, status: "operational", tag: "Operational +" },
+      { city: "Chittagong", country: "Bangladesh", code: "CGP", lat: 22.3569, lng: 91.7832, status: "operational", tag: "Operational +" },
+      { city: "Colombo", country: "Sri Lanka", code: "CMB", lat: 6.9271, lng: 79.8612, status: "operational", tag: "Operational +" },
+      { city: "Dhaka", country: "Bangladesh", code: "DAC", lat: 23.8103, lng: 90.4125, status: "rerouted", tag: "Partially Re-routed +" },
+      { city: "Foshan", country: "China", code: "FUO", lat: 23.0215, lng: 113.1214, status: "operational", tag: "Operational +" },
+      { city: "Tokyo", country: "Japan", code: "NRT", lat: 35.6762, lng: 139.6503, status: "operational", tag: "Operational +" },
+      { city: "Singapore", country: "Singapore", code: "SIN", lat: 1.3521, lng: 103.8198, status: "operational", tag: "Operational +" },
+      { city: "Seoul", country: "South Korea", code: "ICN", lat: 37.5665, lng: 126.9780, status: "operational", tag: "Operational +" }
     ]
   },
   {
     region: "Africa",
+    center: [2.0, 22.0],
     totalCount: 34,
     pops: [
-      { city: "Johannesburg", country: "South Africa", code: "JNB", status: "operational", tag: "Operational +" },
-      { city: "Cape Town", country: "South Africa", code: "CPT", status: "operational", tag: "Operational +" },
-      { city: "Nairobi", country: "Kenya", code: "NBO", status: "operational", tag: "Operational +" },
-      { city: "Cairo", country: "Egypt", code: "CAI", status: "operational", tag: "Operational +" },
-      { city: "Lagos", country: "Nigeria", code: "LOS", status: "operational", tag: "Operational +" }
+      { city: "Johannesburg", country: "South Africa", code: "JNB", lat: -26.2041, lng: 28.0473, status: "operational", tag: "Operational +" },
+      { city: "Cape Town", country: "South Africa", code: "CPT", lat: -33.9249, lng: 18.4241, status: "operational", tag: "Operational +" },
+      { city: "Nairobi", country: "Kenya", code: "NBO", lat: -1.2921, lng: 36.8219, status: "operational", tag: "Operational +" },
+      { city: "Cairo", country: "Egypt", code: "CAI", lat: 30.0444, lng: 31.2357, status: "operational", tag: "Operational +" },
+      { city: "Lagos", country: "Nigeria", code: "LOS", lat: 6.5244, lng: 3.3792, status: "operational", tag: "Operational +" }
     ]
   },
   {
     region: "Europe",
+    center: [50.0, 10.0],
     totalCount: 85,
     pops: [
-      { city: "Frankfurt", country: "Germany", code: "FRA", status: "operational", tag: "Operational +" },
-      { city: "London", country: "United Kingdom", code: "LHR", status: "operational", tag: "Operational +" },
-      { city: "Amsterdam", country: "Netherlands", code: "AMS", status: "operational", tag: "Operational +" },
-      { city: "Paris", country: "France", code: "CDG", status: "operational", tag: "Operational +" },
-      { city: "Warsaw", country: "Poland", code: "WAW", status: "operational", tag: "Operational +" },
-      { city: "Zurich", country: "Switzerland", code: "ZRH", status: "operational", tag: "Operational +" }
+      { city: "Frankfurt", country: "Germany", code: "FRA", lat: 50.1109, lng: 8.6821, status: "operational", tag: "Operational +" },
+      { city: "London", country: "United Kingdom", code: "LHR", lat: 51.5074, lng: -0.1278, status: "operational", tag: "Operational +" },
+      { city: "Amsterdam", country: "Netherlands", code: "AMS", lat: 52.3676, lng: 4.9041, status: "operational", tag: "Operational +" },
+      { city: "Paris", country: "France", code: "CDG", lat: 48.8566, lng: 2.3522, status: "operational", tag: "Operational +" },
+      { city: "Warsaw", country: "Poland", code: "WAW", lat: 52.2297, lng: 21.0122, status: "operational", tag: "Operational +" },
+      { city: "Zurich", country: "Switzerland", code: "ZRH", lat: 47.3769, lng: 8.5417, status: "operational", tag: "Operational +" }
     ]
   },
   {
     region: "North America",
+    center: [39.0, -96.0],
     totalCount: 110,
     pops: [
-      { city: "San Francisco", country: "United States", code: "SFO", status: "operational", tag: "Operational +" },
-      { city: "Ashburn", country: "United States", code: "IAD", status: "operational", tag: "Operational +" },
-      { city: "New York", country: "United States", code: "JFK", status: "operational", tag: "Operational +" },
-      { city: "Chicago", country: "United States", code: "ORD", status: "operational", tag: "Operational +" },
-      { city: "Dallas", country: "United States", code: "DFW", status: "operational", tag: "Operational +" },
-      { city: "Seattle", country: "United States", code: "SEA", status: "operational", tag: "Operational +" }
+      { city: "San Francisco", country: "United States", code: "SFO", lat: 37.7749, lng: -122.4194, status: "operational", tag: "Operational +" },
+      { city: "Ashburn", country: "United States", code: "IAD", lat: 39.0438, lng: -77.4874, status: "operational", tag: "Operational +" },
+      { city: "New York", country: "United States", code: "JFK", lat: 40.7128, lng: -74.0060, status: "operational", tag: "Operational +" },
+      { city: "Chicago", country: "United States", code: "ORD", lat: 41.8781, lng: -87.6298, status: "operational", tag: "Operational +" },
+      { city: "Dallas", country: "United States", code: "DFW", lat: 32.7767, lng: -96.7970, status: "operational", tag: "Operational +" },
+      { city: "Seattle", country: "United States", code: "SEA", lat: 47.6062, lng: -122.3321, status: "operational", tag: "Operational +" }
     ]
   },
   {
     region: "Latin America",
+    center: [-20.0, -60.0],
     totalCount: 42,
     pops: [
-      { city: "Sao Paulo", country: "Brazil", code: "GRU", status: "operational", tag: "Operational +" },
-      { city: "Santiago", country: "Chile", code: "SCL", status: "operational", tag: "Operational +" },
-      { city: "Buenos Aires", country: "Argentina", code: "EZE", status: "operational", tag: "Operational +" }
+      { city: "Sao Paulo", country: "Brazil", code: "GRU", lat: -23.5505, lng: -46.6333, status: "operational", tag: "Operational +" },
+      { city: "Santiago", country: "Chile", code: "SCL", lat: -33.4489, lng: -70.6693, status: "operational", tag: "Operational +" },
+      { city: "Buenos Aires", country: "Argentina", code: "EZE", lat: -34.6037, lng: -58.3816, status: "operational", tag: "Operational +" }
     ]
   },
   {
     region: "Oceania",
+    center: [-28.0, 140.0],
     totalCount: 28,
     pops: [
-      { city: "Sydney", country: "Australia", code: "SYD", status: "operational", tag: "Operational +" },
-      { city: "Melbourne", country: "Australia", code: "MEL", status: "operational", tag: "Operational +" },
-      { city: "Auckland", country: "New Zealand", code: "AKL", status: "operational", tag: "Operational +" }
+      { city: "Sydney", country: "Australia", code: "SYD", lat: -33.8688, lng: 151.2093, status: "operational", tag: "Operational +" },
+      { city: "Melbourne", country: "Australia", code: "MEL", lat: -37.8136, lng: 144.9631, status: "operational", tag: "Operational +" },
+      { city: "Auckland", country: "New Zealand", code: "AKL", lat: -36.8485, lng: 174.7633, status: "operational", tag: "Operational +" }
     ]
   }
 ];
@@ -1181,6 +1187,9 @@ function setSystemState(state, telemetry) {
 
   renderServices();
   renderLocations();
+  if (leafletMap) {
+    updateMapMarkers();
+  }
 }
 
 function setServiceStatus(svcId, status, label) {
@@ -1517,36 +1526,177 @@ function initLocationsMap() {
   leafletMap = L.map("locations-map", {
     center: [25, 10],
     zoom: 2,
-    minZoom: 1,
+    minZoom: 2,
     maxZoom: 10,
     scrollWheelZoom: false,
     attributionControl: false
   });
 
   updateMapTileLayer();
+  updateMapMarkers();
+
+  leafletMap.on("zoomend", updateMapMarkers);
 }
 
 function updateMapTileLayer() {
   if (!leafletMap || typeof L === "undefined") return;
 
-  if (!tileLayer) {
-    tileLayer = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19
-    }).addTo(leafletMap);
+  if (tileLayer) {
+    leafletMap.removeLayer(tileLayer);
+    tileLayer = null;
+  }
+
+  const tileUrl = activeTheme === "dark"
+    ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+    : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+
+  tileLayer = L.tileLayer(tileUrl, {
+    maxZoom: 19,
+    subdomains: "abcd",
+    attribution: "&copy; OpenStreetMap &copy; CARTO"
+  }).addTo(leafletMap);
+}
+
+function updateMapMarkers() {
+  if (!leafletMap || typeof L === "undefined") return;
+
+  // Clear existing markers
+  mapMarkers.forEach(m => {
+    try {
+      leafletMap.removeLayer(m);
+    } catch (_) {}
+  });
+  mapMarkers = [];
+
+  const currentZoom = leafletMap.getZoom();
+  const isBreak = currentSystemState === "break";
+  const isRecover = currentSystemState === "recover";
+
+  if (currentZoom <= 3) {
+    // Show Regional Cluster Badges
+    REGIONAL_LOCATIONS.forEach(reg => {
+      if (!reg.center) return;
+      const hasRerouted = reg.pops.some(p => p.status === "rerouted" && (!isRecover || isBreak));
+      const clusterStatusClass = isBreak ? "has-rerouted" : hasRerouted ? "has-rerouted" : "nominal";
+
+      const clusterIcon = L.divIcon({
+        className: "kumo-cluster-marker",
+        html: `
+          <div class="kumo-cluster-pulse ${clusterStatusClass}"></div>
+          <div class="kumo-cluster-badge ${clusterStatusClass}">
+            <span>${reg.totalCount}</span>
+          </div>
+        `,
+        iconSize: [38, 38],
+        iconAnchor: [19, 19]
+      });
+
+      const marker = L.marker(reg.center, { icon: clusterIcon }).addTo(leafletMap);
+      marker.bindTooltip(`<strong>${reg.region}</strong><br><span style="color:var(--text-dim);font-size:11px;">${reg.totalCount} Anycast Edge Locations</span>`, {
+        direction: "top",
+        offset: [0, -12],
+        className: "kumo-leaflet-tooltip"
+      });
+
+      marker.on("click", () => {
+        leafletMap.flyTo(reg.center, 5, { duration: 1 });
+      });
+
+      mapMarkers.push(marker);
+    });
+  } else {
+    // Show Individual PoP Markers
+    REGIONAL_LOCATIONS.forEach(reg => {
+      reg.pops.forEach(pop => {
+        if (!pop.lat || !pop.lng) return;
+
+        let statusClass = "operational";
+        let statusLabel = "Operational";
+        if (isBreak) {
+          statusClass = "outage";
+          statusLabel = "Major Outage (502)";
+        } else if (pop.status === "rerouted") {
+          if (isRecover) {
+            statusClass = "operational";
+            statusLabel = "Operational (Reroute Cleared)";
+          } else {
+            statusClass = "degraded";
+            statusLabel = "Partially Re-routed";
+          }
+        }
+
+        const popIcon = L.divIcon({
+          className: "pop-map-marker",
+          html: `
+            <div class="pop-pulse-ring ${statusClass}"></div>
+            <div class="pop-dot-core ${statusClass}"></div>
+          `,
+          iconSize: [22, 22],
+          iconAnchor: [11, 11]
+        });
+
+        const marker = L.marker([pop.lat, pop.lng], { icon: popIcon }).addTo(leafletMap);
+        marker.popCode = pop.code;
+
+        const popupContent = `
+          <div style="font-family:var(--font-sans);min-width:140px;padding:2px 4px;">
+            <div style="font-weight:700;font-size:13px;color:var(--text-default);">${pop.city}, ${pop.country}</div>
+            <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);margin-top:2px;">PoP: ${pop.code} · ${reg.region}</div>
+            <div style="margin-top:6px;display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;font-family:var(--font-mono);background:var(--bg-recessed);color:${statusClass === 'outage' ? '#ef4444' : statusClass === 'degraded' ? '#f59e0b' : '#10b981'};">
+              ${statusLabel}
+            </div>
+          </div>
+        `;
+        marker.bindPopup(popupContent, { offset: [0, -8], closeButton: false });
+
+        mapMarkers.push(marker);
+      });
+    });
   }
 }
 
 function resetMapView() {
   if (leafletMap) {
-    leafletMap.setView([25, 10], 2);
+    leafletMap.flyTo([25, 10], 2, { duration: 1 });
   }
 }
 
 function focusPopCode(code) {
-  // Switch to Locations if needed
+  if (!code) return;
+
   if (activeTab !== "locations") {
     switchTab("locations");
   }
+
+  let targetPop = null;
+  for (const reg of REGIONAL_LOCATIONS) {
+    const found = reg.pops.find(p => p.code === code);
+    if (found) {
+      targetPop = found;
+      break;
+    }
+  }
+
+  if (!targetPop || !targetPop.lat || !targetPop.lng) return;
+
+  setTimeout(() => {
+    if (!leafletMap) initLocationsMap();
+    if (!leafletMap) return;
+
+    leafletMap.flyTo([targetPop.lat, targetPop.lng], 6, { duration: 1 });
+
+    setTimeout(() => {
+      const marker = mapMarkers.find(m => m.popCode === code);
+      if (marker) {
+        marker.openPopup();
+      }
+    }, 1100);
+
+    const mapCard = document.querySelector(".map-card");
+    if (mapCard) {
+      mapCard.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, 120);
 }
 
 function applyInitialStateFromUrl() {

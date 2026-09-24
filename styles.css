@@ -1004,6 +1004,64 @@ body {
   100% { transform: scale(1.8); opacity: 0; }
 }
 
+/* Cloudflare Kumo-Style Map Cluster Markers */
+.kumo-cluster-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+}
+
+.kumo-cluster-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg-base);
+  border: 2px solid var(--color-operational);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7), 0 0 10px rgba(0, 210, 106, 0.4);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  z-index: 3;
+}
+
+.kumo-cluster-badge:hover {
+  transform: scale(1.15);
+}
+
+.kumo-cluster-badge.has-rerouted {
+  border-color: var(--color-degraded);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7), 0 0 10px rgba(245, 158, 11, 0.4);
+}
+
+.kumo-cluster-pulse {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: cluster-pulse 2.2s infinite ease-out;
+  border: 2px solid rgba(0, 210, 106, 0.6);
+  background: rgba(0, 210, 106, 0.15);
+}
+
+.kumo-cluster-pulse.has-rerouted {
+  border-color: rgba(245, 158, 11, 0.6);
+  background: rgba(245, 158, 11, 0.15);
+}
+
+@keyframes cluster-pulse {
+  0% { transform: scale(0.6); opacity: 0.9; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
 .leaflet-popup-content-wrapper {
   background: var(--bg-base) !important;
   color: var(--text-default) !important;
