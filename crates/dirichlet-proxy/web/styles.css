@@ -1021,17 +1021,21 @@ body {
   gap: 6px;
   font-weight: 500;
   font-size: 0.75rem;
+  line-height: 1.2;
 }
 
 .legend-dot {
   border-radius: 50%;
   flex-shrink: 0;
+  display: inline-block;
+  margin-top: 1.5px;
 }
 
 .legend-dot.dot-operational {
   width: 9px;
   height: 9px;
   background-color: #94a3b8;
+  border: none;
 }
 
 .legend-dot.dot-rerouted {
@@ -1045,7 +1049,7 @@ body {
   width: 10px;
   height: 10px;
   background-color: #eab308;
-  border: 1.5px solid #ffffff;
+  border: 1.5px dashed #ffffff;
 }
 
 .legend-cluster-badge {
@@ -1061,6 +1065,8 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1.5px;
 }
 
 .map-attribution {
@@ -1106,7 +1112,7 @@ body {
 }
 
 .kumo-cluster-bubble.has-partial {
-  border-color: #eab308;
+  border: 1.5px dashed #eab308;
 }
 
 .kumo-cluster-bubble.has-outage {
@@ -1153,7 +1159,7 @@ body {
   width: 10px;
   height: 10px;
   background-color: #94a3b8;
-  border: 2px solid #ffffff;
+  border: none;
 }
 
 .pop-dot-core.rerouted {
@@ -1167,7 +1173,7 @@ body {
   width: 12px;
   height: 12px;
   background-color: #eab308;
-  border: 2px solid #ffffff;
+  border: 2px dashed #ffffff;
 }
 
 .pop-dot-core.outage {
