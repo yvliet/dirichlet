@@ -551,11 +551,6 @@ body {
   border-radius: var(--radius-lg);
   padding: 14px 18px;
   text-align: center;
-  transition: border-color 0.15s ease;
-}
-
-.metric-box:hover {
-  border-color: var(--border-hairline);
 }
 
 .metric-label {
@@ -1188,7 +1183,7 @@ body {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .stat-card {
@@ -1199,11 +1194,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  transition: border-color 0.15s ease;
-}
-
-.stat-card:hover {
-  border-color: var(--border-hairline);
 }
 
 .stat-label {
@@ -1251,12 +1241,11 @@ body {
   border: 1px solid var(--border-line);
   border-radius: var(--radius-lg);
   padding: 18px 20px;
-  margin-bottom: 16px;
-  transition: border-color 0.15s ease;
+  margin-bottom: 12px;
 }
 
-.chart-card:hover {
-  border-color: var(--border-hairline);
+.chart-card:last-child {
+  margin-bottom: 0;
 }
 
 .chart-header {
