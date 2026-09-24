@@ -958,7 +958,7 @@ function renderSvgChart(containerId, options) {
       });
 
       const screenX = rect.left + (ptSvgX / width) * rect.width;
-      const screenY = rect.top + (primarySvgY / height) * rect.height;
+      const screenY = rect.top + (primarySvgY / height) * rect.height - 6;
 
       positionArrowTooltipAtPoint(screenX, screenY, tooltipHtml);
     });
@@ -1557,6 +1557,9 @@ function applyInitialStateFromUrl() {
   }
 }
 
+let lastMetricsHash = "";
+let lastIncidentsHash = "";
+
 async function loadTelemetryData() {
   try {
     const [statusRes, metricsRes, incRes] = await Promise.allSettled([
@@ -1578,17 +1581,25 @@ async function loadTelemetryData() {
     if (metricsRes.status === "fulfilled" && metricsRes.value.ok) {
       const remoteMetrics = await metricsRes.value.json();
       if (Array.isArray(remoteMetrics) && remoteMetrics.length > 0) {
-        metricsData = remoteMetrics;
-        renderAllCharts();
+        const hash = JSON.stringify(remoteMetrics);
+        if (hash !== lastMetricsHash) {
+          lastMetricsHash = hash;
+          metricsData = remoteMetrics;
+          renderAllCharts();
+        }
       }
     }
 
     if (incRes.status === "fulfilled" && incRes.value.ok) {
       const remoteIncidents = await incRes.value.json();
       if (Array.isArray(remoteIncidents) && remoteIncidents.length > 0) {
-        incidentsData = remoteIncidents;
-        renderOverview();
-        renderHistory();
+        const hash = JSON.stringify(remoteIncidents);
+        if (hash !== lastIncidentsHash) {
+          lastIncidentsHash = hash;
+          incidentsData = remoteIncidents;
+          renderOverview();
+          renderHistory();
+        }
       }
     }
   } catch (_) {
@@ -1612,5 +1623,5 @@ document.addEventListener("DOMContentLoaded", () => {
   renderAllCharts();
   applyInitialStateFromUrl();
   loadTelemetryData();
-  setInterval(loadTelemetryData, 1500);
+  setInterval(loadTelemetryData, 5000);
 });

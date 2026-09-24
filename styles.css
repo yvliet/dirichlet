@@ -1037,7 +1037,7 @@ body {
   display: none;
   font-family: var(--font-sans);
   transform: translate(-50%, -100%);
-  margin-top: -8px;
+  margin-top: -12px;
 }
 
 /* Arrowhead Pointing Downward */
