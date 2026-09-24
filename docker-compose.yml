@@ -1,0 +1,29 @@
+# ==============================================================================
+# Dirichlet Analytical Layer: ClickHouse Cluster Services
+# Service: ClickHouse single-node cluster modeling distributed shard reflections
+# ==============================================================================
+
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.3-alpine
+    container_name: dirichlet-clickhouse
+    ports:
+      - "8123:8123" # HTTP Query API
+      - "9000:9000" # Native TCP client
+    environment:
+      CLICKHOUSE_DB: bot_signals
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    volumes:
+      - ./migrations/001_bot_signals.sql:/docker-entrypoint-initdb.d/001_bot_signals.sql:ro
+      - ./migrations/002_shard_definitions.sql:/docker-entrypoint-initdb.d/002_shard_definitions.sql:ro
+      - ./migrations/003_feature_weights.sql:/docker-entrypoint-initdb.d/003_feature_weights.sql:ro
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+      interval: 3s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
