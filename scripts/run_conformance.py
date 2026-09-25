@@ -29,7 +29,7 @@ BADGE_SHED = "\033[1;43;37m SHED \033[0m"
 BADGE_FUZZ = "\033[1;46;37m FUZZ \033[0m"
 BADGE_CERT = "\033[1;45;37m CERT \033[0m"
 
-# Aesthetic ANSI palette
+# Terminal ANSI color palette
 EMERALD = "\033[38;5;48m"    # Healthy states & passing assertions
 CRIMSON = "\033[38;5;196m"   # Incident states & panic highlights
 GOLD = "\033[38;5;214m"      # Telemetry & degradation highlights
