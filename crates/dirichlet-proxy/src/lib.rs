@@ -9,6 +9,9 @@ pub use engine::feature_ingest::{
     ingest_features_gracefully, Feature, IngestionReport, MAX_ACTIVE_FEATURES,
 };
 pub use engine::metrics::PrometheusMetrics;
+pub use engine::tiered_buffer::{
+    TieredBuffer, TieredBufferError, DEFAULT_FAST_CAPACITY, DEFAULT_SPILL_CAPACITY,
+};
 pub use engine::traffic_evaluator::{
     EvaluationVerdict, MitigationAction, RequestSignals, TrafficEvaluator,
 };
@@ -32,3 +35,20 @@ pub fn ingest_features_baseline(features: &[Feature]) -> [Feature; 200] {
     let slice_ref: &[Feature; 200] = padded.as_slice().try_into().unwrap();
     slice_ref.clone()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_tiered_buffer_stack_safety() {
+        let mut buf: TieredBuffer<u64, 200, 312> = TieredBuffer::new();
+        let payload: Vec<u64> = (0..280).collect();
+        assert_eq!(buf.ingest_slice(&payload), Ok(280));
+        assert_eq!(buf.len(), 280);
+        for i in 0..280 {
+            assert_eq!(buf.get(i), Some(&(i as u64)));
+        }
+    }
+}
+
