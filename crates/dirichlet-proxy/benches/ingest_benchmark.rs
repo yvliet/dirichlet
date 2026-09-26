@@ -29,26 +29,21 @@ impl FeatureDescriptor {
     }
 }
 
-fn generate_sample_descriptors(count: usize) -> [FeatureDescriptor; 280] {
-    let mut arr = [FeatureDescriptor::new(0, 0, false); 280];
+fn generate_sample_descriptors(count: usize) -> [FeatureDescriptor; MAX_ACTIVE_FEATURES] {
+    let mut arr = [FeatureDescriptor::new(0, 0, false); MAX_ACTIVE_FEATURES];
     let mut i = 0;
-    while i < count && i < 280 {
-        // Interleaved priorities simulating unordered multi-shard catalog ingestion
-        // 0..200: core security features with priorities >= 50
-        // 200..280: 80 untrusted shadow features with priority = 0
-        let (priority, is_shadow) = if i < 200 {
-            (50 + ((255 - 50) * (200 - i) / 200) as u8, false)
-        } else {
-            (0, true)
-        };
-        arr[i] = FeatureDescriptor::new(i as u32, priority, is_shadow);
+    while i < count && i < MAX_ACTIVE_FEATURES {
+        // Interleaved priorities simulating unordered canonical catalog ingestion
+        // Priorities decrease linearly from 255 at index 0 to 50 at index MAX_ACTIVE_FEATURES-1
+        let priority = (50 + ((255 - 50) * (MAX_ACTIVE_FEATURES - i) / MAX_ACTIVE_FEATURES)) as u8;
+        arr[i] = FeatureDescriptor::new(i as u32, priority, false);
         i += 1;
     }
     arr
 }
 
 pub fn bench_ingestion(c: &mut Criterion) {
-    let sample = generate_sample_descriptors(280);
+    let sample = generate_sample_descriptors(MAX_ACTIVE_FEATURES);
 
     let mut group = c.benchmark_group("feature_ingestion");
     group.measurement_time(Duration::from_millis(150));
@@ -58,7 +53,7 @@ pub fn bench_ingestion(c: &mut Criterion) {
     // Partitions 16-item boundary window in L1 cache with zero memory allocations
     group.bench_function("in_place_select_nth_boundary_16", |b| {
         let mut window = [FeatureDescriptor::new(0, 0, false); 16];
-        window.copy_from_slice(&sample[192..208]);
+        window.copy_from_slice(&sample[184..200]);
         b.iter(|| {
             window.select_nth_unstable_by(7, |a, b| b.priority.cmp(&a.priority));
             black_box(&window[..8]);
@@ -77,8 +72,8 @@ pub fn bench_ingestion(c: &mut Criterion) {
         });
     });
 
-    // Case 2A: Full 280-Item In-Place Partial Selection (Zero Allocations)
-    group.bench_function("in_place_select_nth_280", |b| {
+    // Case 2A: Full 200-Item In-Place Partial Selection (Zero Allocations)
+    group.bench_function("in_place_select_nth_200", |b| {
         let mut buffer = sample;
         b.iter(|| {
             buffer.select_nth_unstable_by(MAX_ACTIVE_FEATURES - 1, |a, b| b.priority.cmp(&a.priority));
@@ -86,8 +81,8 @@ pub fn bench_ingestion(c: &mut Criterion) {
         });
     });
 
-    // Case 2B: Full 280-Item Heap Allocation and Sorting
-    group.bench_function("heap_allocated_vec_280", |b| {
+    // Case 2B: Full 200-Item Heap Allocation and Sorting
+    group.bench_function("heap_allocated_vec_200", |b| {
         b.iter(|| {
             let mut heap_vec: Vec<FeatureDescriptor> = sample.to_vec();
             heap_vec.sort_by(|a, b| b.priority.cmp(&a.priority));

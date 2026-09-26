@@ -24,10 +24,12 @@ PARTITION BY toYYYYMM(timestamp)
 ORDER BY (zone_id, toDate(timestamp), net_asn, event_id);
 
 -- ----------------------------------------------------------------------------
--- Cross-Boundary Contract Hazard:
--- An unqualified catalog query:
---   SELECT name, type FROM system.columns WHERE table LIKE 'events%';
--- matches across bot_signals.events and shard replicas (events_r0, events_r1),
--- causing 80 replicated columns to leak across database boundaries into the
--- edge proxy dynamic configuration payload (expanding 200 -> 280 features).
+-- Catalog Reflection Contract:
+-- Upstream schema reflection MUST be scoped to the canonical source table only.
+-- Qualified query (enforced):
+--   SELECT name, type FROM system.columns
+--   WHERE table = 'events' AND database = 'bot_signals';
+-- This ensures exactly 200 canonical feature columns are projected downstream,
+-- preventing shard replica columns (events_r0, events_r1) from leaking across
+-- database boundaries and inflating the feature payload beyond MAX_ACTIVE_FEATURES.
 -- ----------------------------------------------------------------------------
